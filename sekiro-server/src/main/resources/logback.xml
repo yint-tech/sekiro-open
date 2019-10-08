@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+
+    <!-- 保存路径-->
+    <property name="logDir" value="./logs"/>
+    <!-- 保存日志天数-->
+    <property name="maxHistory" value="3"/>
+
+    <property name="errorMaxHistory" value="30"/>
+    <!-- 项目名-->
+    <property name="projectName" value="sekiro-server"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDir}/${projectName}/${projectName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logDir}/${projectName}/${projectName}-%d{yyyy-MM-dd}.zip</fileNamePattern>
+            <maxHistory>${maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger:%L] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${logDir}/${projectName}/${projectName}-error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logDir}/${projectName}/${projectName}-error-%d{yyyy-MM-dd}.zip</fileNamePattern>
+            <maxHistory>${errorMaxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger:%L] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Console output -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoder defaults to ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+        <encoder>
+            <!--<pattern>%-5level %logger{36} - %msg%n</pattern>-->
+            <pattern>%date{ISO8601} %-5level %logger{36} %X{sourceThread} %X{akkaSource} - %msg%n</pattern>
+        </encoder>
+        <!-- Only log level DEBUG and above -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+    </appender>
+
+    <!--通过配置报名及level  可以选择去掉第三方过多的日志 -->
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR"/>
+    </root>
+
+</configuration>

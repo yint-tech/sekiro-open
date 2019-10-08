@@ -1,0 +1,1 @@
+include ':app-demo', ':sekiro-server', ':sekiro-lib'
