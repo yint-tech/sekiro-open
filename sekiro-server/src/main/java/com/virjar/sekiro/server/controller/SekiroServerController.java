@@ -41,9 +41,9 @@ public class SekiroServerController {
         return CommonRes.success(stringListMap);
     }
 
-    @GetMapping("/channelList")
+    @GetMapping("/groupList")
     @ResponseBody
-    public CommonRes<?> channelList() {
+    public CommonRes<?> groupList() {
         List<String> stringListMap = ChannelRegistry.getInstance().channelList();
         return CommonRes.success(stringListMap);
     }

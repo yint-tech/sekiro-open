@@ -20,7 +20,7 @@ targetCompatibility = "7"
 
 
 group 'com.virjar'
-version '1.0.0-SNAPSHOT'
+version '1.0.0'
 
 
 compileJava {
