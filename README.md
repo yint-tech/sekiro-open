@@ -6,7 +6,7 @@ Sekiro是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/hermes
 
 1. 对网络环境要求低，sekiro使用长链接管理服务，使得Android手机可以分布于全国各地，甚至全球各地。手机掺合在普通用户群体，方便实现反抓突破，更加适合获取下沉数据。
 2. 不依赖hook框架，就曾经的Hermes系统来说，和xposed框架深度集成，在当今hook框架遍地开花的环境下，框架无法方便迁移。所以在Sekiro的设计中，只提供了RPC功能了。
-3. 纯异步调用，在Hermes和其他曾经出现过的框架中，基本都是同步调用。虽然说签名计算可以达到上百QPS，但是如果用来做业务方法调用的话，由于调用过程穿透到目标app的服务器，会有大量请求占用线程。系统吞吐存在上线(hermes系统达到2000QPS的时候，基本无法横行扩容和性能优化了)。但是Sekiro全程使用NIO，理论上其吞吐可以把资源占满。
+3. 纯异步调用，在Hermes和其他曾经出现过的框架中，基本都是同步调用。虽然说签名计算可以达到上百QPS，但是如果用来做业务方法调用的话，由于调用过程穿透到目标app的服务器，会有大量请求占用线程。系统吞吐存在上线(hermes系统达到2000QPS的时候，基本无法横向扩容和性能优化了)。但是Sekiro全程使用NIO，理论上其吞吐可以把资源占满。
 4. 等等
 
 
@@ -99,6 +99,10 @@ http://sekiro.virjar.com/natChannelStatus?group=sekiro-demo
 http://sekiro.virjar.com/invoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
 
 {"clientId":"2e77bbfa_869941041217576","data":"process: com.virjar.sekiro.demoapp : now:1570546873170 your param1:自定义参数","ok":true,"status":0}
+
+http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
+
+{"clientId":"2e77bbfa_869941041217576","data":"process: com.virjar.sekiro.demoapp : now:1570897005965 your param1:自定义参数","ok":true,"status":0}
 ```
 client demo在``app-demo``子工程可以看到，直接运行app-demo，即可在 sekiro.virjar.com看到你的设备列表
 
@@ -109,6 +113,82 @@ Sekiro本身不提供代码注入功能，不过Sekiro一般需要和代码注�
 Sekiro调用真实apk的例子稍后提供
 
 
-# 服务器异步http 暂未实现
+# 服务器异步http
+
+sekiro框架在http服务模块，提供了两个http端口，分别为BIO和NIO模式，其中BIO模式提供给tomcat容器使用，为了方便springBoot集成。另一方面，NIO提供给调用转发模块，NIO转发过程并不会占用线程池资源，理论上只对连接句柄和CPU资源存在瓶颈。
+
+sekiro的这两个服务分别占用两个不同端口，分别为:
+```
+#tomcat 占用端口
+server.port=5602
+#长链接服务占用端口
+natServerPort=5600
+# 异步http占用端口
+natHttpServerPort=5601
+```
+
+同时两个请求的uri也有一点差异，分别为,
+
+BIO:  http://sekiro.virjar.com/invoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
+
+AIO:  http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
+
+可以看到sekiro的demo网站中，都是占用了统一个端口，这是因为存在ngnix转发，你可以参照如下配置实现这个效果:
+```
+upstream sekiro_server {
+  server 127.0.0.1:5602;
+}
+
+upstream sekiro_nio {
+  server 127.0.0.1:5601;
+}
+
+server {
+  listen 0.0.0.0:80;
+  listen [::]:80;
+  server_name sekiro.virjar.com;
+  server_tokens off;
+
+  real_ip_header X-Real-IP;
+  real_ip_recursive off;
 
 
+location / {
+    client_max_body_size 0;
+    gzip off;
+
+    proxy_read_timeout      300;
+    proxy_connect_timeout   300;
+    proxy_redirect          off;
+
+    proxy_http_version 1.1;
+
+    proxy_set_header    Host                $http_host;
+    proxy_set_header    X-Real-IP           $remote_addr;
+    proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+    proxy_set_header    X-Forwarded-Proto   $scheme;
+
+    proxy_pass http://sekiro_server;
+  }
+
+location /asyncInvoke {
+    client_max_body_size 0;
+    gzip off;
+
+    proxy_read_timeout      300;
+    proxy_connect_timeout   300;
+    proxy_redirect          off;
+
+    proxy_http_version 1.1;
+
+    proxy_set_header    Host                $http_host;
+    proxy_set_header    X-Real-IP           $remote_addr;
+    proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+    proxy_set_header    X-Forwarded-Proto   $scheme;
+
+    proxy_pass http://sekiro_nio;
+  }
+}
+```
+
+强烈建议使用NIO接口访问调用服务
