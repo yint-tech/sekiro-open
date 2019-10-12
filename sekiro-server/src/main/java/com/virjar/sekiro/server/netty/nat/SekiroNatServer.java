@@ -1,4 +1,4 @@
-package com.virjar.sekiro.server.netty;
+package com.virjar.sekiro.server.netty.nat;
 
 import com.virjar.sekiro.Constants;
 import com.virjar.sekiro.netty.protocol.SekiroMessageEncoder;
@@ -15,6 +15,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
+
+/**
+ * 手机端通信服务，通过这个和app连接，下发推送调用命令，可实现内网穿透，故命名为NatServer
+ */
 @Slf4j
 @Component
 public class SekiroNatServer implements InitializingBean {
@@ -22,13 +26,11 @@ public class SekiroNatServer implements InitializingBean {
     @Value("${natServerPort}")
     private Integer natServerPort;
 
-    @Value("${natHttpServerPort}")
-    private Integer natHttpServerPort;
 
     private boolean started = false;
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         if (started) {
             return;
         }
@@ -37,7 +39,7 @@ public class SekiroNatServer implements InitializingBean {
     }
 
 
-    public void startUp() {
+    private void startUp() {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         NioEventLoopGroup serverBossGroup = new NioEventLoopGroup();
         NioEventLoopGroup serverWorkerGroup = new NioEventLoopGroup();
@@ -60,9 +62,6 @@ public class SekiroNatServer implements InitializingBean {
                     }
                 });
 
-        if (natHttpServerPort == null) {
-            natHttpServerPort = Constants.defaultNatHttpServerPort;
-        }
 
         if (natServerPort == null) {
             natServerPort = Constants.defaultNatServerPort;

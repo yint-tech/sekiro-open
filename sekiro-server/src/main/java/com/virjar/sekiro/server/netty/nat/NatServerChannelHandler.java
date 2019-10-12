@@ -1,8 +1,9 @@
-package com.virjar.sekiro.server.netty;
+package com.virjar.sekiro.server.netty.nat;
 
 
 import com.virjar.sekiro.Constants;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
+import com.virjar.sekiro.server.netty.ChannelRegistry;
 
 import org.apache.commons.lang3.StringUtils;
 

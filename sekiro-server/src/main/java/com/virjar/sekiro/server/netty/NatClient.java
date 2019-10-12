@@ -4,6 +4,8 @@ import com.google.common.base.Charsets;
 import com.virjar.sekiro.Constants;
 import com.virjar.sekiro.api.CommonRes;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
+import com.virjar.sekiro.server.netty.nat.NettyInvokeRecord;
+import com.virjar.sekiro.server.netty.nat.TaskRegistry;
 import com.virjar.sekiro.server.util.ReturnUtil;
 
 import org.apache.commons.io.IOUtils;

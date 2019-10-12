@@ -28,5 +28,6 @@ dependencies {
 
     implementation project(':sekiro-lib')
 
+    implementation 'io.netty:netty-codec-http:4.0.44.Final'
     annotationProcessor 'org.projectlombok:lombok:1.18.2'
 }

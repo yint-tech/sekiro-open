@@ -1,6 +1,5 @@
-package com.virjar.sekiro.server.netty;
+package com.virjar.sekiro.server.netty.nat;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 

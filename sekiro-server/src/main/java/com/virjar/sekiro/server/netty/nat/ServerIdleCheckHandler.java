@@ -1,4 +1,4 @@
-package com.virjar.sekiro.server.netty;
+package com.virjar.sekiro.server.netty.nat;
 
 import com.virjar.sekiro.Constants;
 
