@@ -1,10 +1,6 @@
 package com.virjar.sekiro.server.netty.http;
 
 import com.virjar.sekiro.Constants;
-import com.virjar.sekiro.netty.protocol.SekiroMessageEncoder;
-import com.virjar.sekiro.netty.protocol.SekiroNatMessageDecoder;
-import com.virjar.sekiro.server.netty.nat.NatServerChannelHandler;
-import com.virjar.sekiro.server.netty.nat.ServerIdleCheckHandler;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;

@@ -4,8 +4,9 @@ package com.virjar.sekiro.server.netty.http;
 import com.virjar.sekiro.api.Multimap;
 import com.virjar.sekiro.server.netty.ChannelRegistry;
 import com.virjar.sekiro.server.netty.NatClient;
-import com.virjar.sekiro.server.netty.http.msg.DefaultHttpResponse;
+import com.virjar.sekiro.server.netty.http.msg.DefaultHtmlHttpResponse;
 import com.virjar.sekiro.server.util.CommonUtil;
+import com.virjar.sekiro.server.util.ReturnUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,8 +52,8 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         if (!StringUtils.equalsAnyIgnoreCase(url, "/asyncInvoke")) {
             //404
             Channel channel = channelHandlerContext.channel();
-            channel.write(DefaultHttpResponse.notFound);
-            channel.writeAndFlush(DefaultHttpResponse.notFound.contentByteData).addListener(ChannelFutureListener.CLOSE);
+            channel.write(DefaultHtmlHttpResponse.notFound);
+            channel.writeAndFlush(DefaultHtmlHttpResponse.notFound.contentByteData).addListener(ChannelFutureListener.CLOSE);
             return;
         }
 
@@ -62,8 +63,8 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         if (contentType == null && !method.equals(HttpMethod.GET)) {
             //不识别的请求类型
             Channel channel = channelHandlerContext.channel();
-            channel.write(DefaultHttpResponse.badRequest);
-            channel.writeAndFlush(DefaultHttpResponse.badRequest.contentByteData).addListener(ChannelFutureListener.CLOSE);
+            channel.write(DefaultHtmlHttpResponse.badRequest);
+            channel.writeAndFlush(DefaultHtmlHttpResponse.badRequest.contentByteData).addListener(ChannelFutureListener.CLOSE);
             return;
         }
         if (contentType == null) {
@@ -76,7 +77,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         if (!"application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getMimeType())
                 && !"application/json".equalsIgnoreCase(contentType.getMimeType())) {
             String errorMessage = "sekiro framework only support contentType:application/x-www-form-urlencoded | application/json, now is: " + contentType.getMimeType();
-            DefaultHttpResponse contentTypeNotSupportMessage = new DefaultHttpResponse(errorMessage);
+            DefaultHtmlHttpResponse contentTypeNotSupportMessage = new DefaultHtmlHttpResponse(errorMessage);
 
             Channel channel = channelHandlerContext.channel();
             channel.write(contentTypeNotSupportMessage);
@@ -110,8 +111,8 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
             //TODO
             log.warn("request body empty");
             Channel channel = channelHandlerContext.channel();
-            channel.write(DefaultHttpResponse.badRequest);
-            channel.writeAndFlush(DefaultHttpResponse.badRequest.contentByteData).addListener(ChannelFutureListener.CLOSE);
+            channel.write(DefaultHtmlHttpResponse.badRequest);
+            channel.writeAndFlush(DefaultHtmlHttpResponse.badRequest.contentByteData).addListener(ChannelFutureListener.CLOSE);
             return;
         }
 
@@ -135,9 +136,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
             } catch (JSONException e) {
                 //TODO
                 log.warn("request body empty");
-                Channel channel = channelHandlerContext.channel();
-                channel.write(DefaultHttpResponse.badRequest);
-                channel.writeAndFlush(DefaultHttpResponse.badRequest.contentByteData).addListener(ChannelFutureListener.CLOSE);
+                ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("request body empty"));
                 return;
             }
         }
@@ -146,16 +145,14 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         if (StringUtils.isNotBlank(bindClient)) {
             natClient = ChannelRegistry.getInstance().queryByClient(group, bindClient);
             if (natClient == null || !natClient.getCmdChannel().isActive()) {
-                //ReturnUtil.writeRes(httpServletResponse, ReturnUtil.failed("device offline"));
-                //TODO
+                ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("device offline"));
                 return;
             }
         } else {
             natClient = ChannelRegistry.getInstance().allocateOne(group);
         }
         if (natClient == null) {
-            //ReturnUtil.writeRes(httpServletResponse, ReturnUtil.failed("no device online"));
-            //TOOD
+            ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("no device online"));
             return;
         }
         natClient.forward(requestBody, channelHandlerContext.channel());

@@ -7,10 +7,10 @@ import com.virjar.sekiro.server.netty.http.HeaderNameValue;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
-public class DefaultHttpResponse extends io.netty.handler.codec.http.DefaultHttpResponse {
+public class DefaultHtmlHttpResponse extends io.netty.handler.codec.http.DefaultHttpResponse {
     public final byte[] contentByteData;
 
-    public DefaultHttpResponse(String content) {
+    public DefaultHtmlHttpResponse(String content) {
         super(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
 
         contentByteData = content.getBytes(Charsets.UTF_8);
@@ -48,8 +48,8 @@ public class DefaultHttpResponse extends io.netty.handler.codec.http.DefaultHttp
             "</html>";
 
 
-    public static DefaultHttpResponse badRequest = new DefaultHttpResponse(badRequestContent);
+    public static DefaultHtmlHttpResponse badRequest = new DefaultHtmlHttpResponse(badRequestContent);
 
 
-    public static DefaultHttpResponse notFound = new DefaultHttpResponse(notFoundContent);
+    public static DefaultHtmlHttpResponse notFound = new DefaultHtmlHttpResponse(notFoundContent);
 }

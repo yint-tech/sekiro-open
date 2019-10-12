@@ -2,7 +2,10 @@ package com.virjar.sekiro.server.netty.nat;
 
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 
+import javax.print.attribute.standard.NumberUp;
+
 import lombok.Getter;
+import lombok.Setter;
 
 public class NettyInvokeRecord {
     @Getter
@@ -49,9 +52,14 @@ public class NettyInvokeRecord {
      */
     public void notifyDataArrival(SekiroNatMessage responseJson) {
         this.invokeResult = responseJson;
-        synchronized (lock) {
-            callbackCalled = true;
-            lock.notify();
+
+        if (sekiroResponseEvent != null) {
+            sekiroResponseEvent.onSekiroResponse(responseJson);
+        } else {
+            synchronized (lock) {
+                callbackCalled = true;
+                lock.notify();
+            }
         }
     }
 
@@ -66,4 +74,12 @@ public class NettyInvokeRecord {
         return callbackCalled;
     }
 
+    @Setter
+    private SekiroResponseEvent sekiroResponseEvent = null;
+
+
+
+   public interface SekiroResponseEvent {
+        void onSekiroResponse(SekiroNatMessage responseJson);
+    }
 }
