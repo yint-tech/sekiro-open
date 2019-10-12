@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
@@ -147,6 +148,9 @@ public class ChannelRegistry {
 
     public List<String> channelStatus(String group) {
         ClientGroup clientGroup = clientGroupMap.get(group);
+        if (clientGroup == null) {
+            return Collections.emptyList();
+        }
         Collection<NatClient> natClients = clientGroup.natClientMap.values();
         List<String> clientVo = Lists.newArrayList();
         for (NatClient natClient : natClients) {
