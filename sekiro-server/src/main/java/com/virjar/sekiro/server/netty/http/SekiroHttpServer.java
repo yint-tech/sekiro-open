@@ -51,11 +51,11 @@ public class SekiroHttpServer implements InitializingBean {
 
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        socketChannel.pipeline().addLast("decoder", new RBHttpRequestDecoder())
-                                .addLast("encoder", new HttpResponseEncoder())
+                        socketChannel.pipeline().addLast(new RBHttpRequestDecoder())
+                                .addLast(new HttpResponseEncoder())
                                 //最大32M的报文
-                                .addLast("aggregator", new HttpObjectAggregator(1 << 25))
-                                .addLast("dispatcher", new HttpRequestDispatcher());
+                                .addLast(new HttpObjectAggregator(1 << 25))
+                                .addLast(new HttpRequestDispatcher());
                     }
                 });
 

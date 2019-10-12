@@ -20,16 +20,23 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFullHttpRequest> {
+public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpRequest> {
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, DefaultFullHttpRequest request) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest request) throws Exception {
+        doHandle(channelHandlerContext, request);
 
+    }
+
+    private void doHandle(ChannelHandlerContext channelHandlerContext, FullHttpRequest request) {
         String uri = request.getUri();
         HttpMethod method = request.getMethod();
 
@@ -39,7 +46,8 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         if (uri.contains("?")) {
             int index = uri.indexOf("?");
             url = uri.substring(0, index);
-            query = uri.substring(index);
+            //排除?
+            query = uri.substring(index + 1);
         }
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
@@ -52,8 +60,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         if (!StringUtils.equalsAnyIgnoreCase(url, "/asyncInvoke")) {
             //404
             Channel channel = channelHandlerContext.channel();
-            channel.write(DefaultHtmlHttpResponse.notFound);
-            channel.writeAndFlush(DefaultHtmlHttpResponse.notFound.contentByteData).addListener(ChannelFutureListener.CLOSE);
+            channel.writeAndFlush(DefaultHtmlHttpResponse.notFound()).addListener(ChannelFutureListener.CLOSE);
             return;
         }
 
@@ -63,8 +70,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         if (contentType == null && !method.equals(HttpMethod.GET)) {
             //不识别的请求类型
             Channel channel = channelHandlerContext.channel();
-            channel.write(DefaultHtmlHttpResponse.badRequest);
-            channel.writeAndFlush(DefaultHtmlHttpResponse.badRequest.contentByteData).addListener(ChannelFutureListener.CLOSE);
+            channel.writeAndFlush(DefaultHtmlHttpResponse.badRequest()).addListener(ChannelFutureListener.CLOSE);
             return;
         }
         if (contentType == null) {
@@ -80,8 +86,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
             DefaultHtmlHttpResponse contentTypeNotSupportMessage = new DefaultHtmlHttpResponse(errorMessage);
 
             Channel channel = channelHandlerContext.channel();
-            channel.write(contentTypeNotSupportMessage);
-            channel.writeAndFlush(contentTypeNotSupportMessage.contentByteData).addListener(ChannelFutureListener.CLOSE);
+            channel.writeAndFlush(contentTypeNotSupportMessage).addListener(ChannelFutureListener.CLOSE);
             return;
             //  httpSekiroResponse.failed("sekiro framework only support contentType:application/x-www-form-urlencoded | application/json, now is: " + contentType.getMimeType());
             // return;
@@ -111,8 +116,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
             //TODO
             log.warn("request body empty");
             Channel channel = channelHandlerContext.channel();
-            channel.write(DefaultHtmlHttpResponse.badRequest);
-            channel.writeAndFlush(DefaultHtmlHttpResponse.badRequest.contentByteData).addListener(ChannelFutureListener.CLOSE);
+            channel.writeAndFlush(DefaultHtmlHttpResponse.badRequest()).addListener(ChannelFutureListener.CLOSE);
             return;
         }
 
@@ -120,8 +124,8 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
         String requestBody;
         String bindClient;
         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getMimeType())) {
-            Multimap nameValuePairs = Multimap.parseQuery(query);
-            nameValuePairs.putAll(Multimap.parseQuery(postBody));
+            Multimap nameValuePairs = Multimap.parseUrlEncoded(query);
+            nameValuePairs.putAll(Multimap.parseUrlEncoded(postBody));
             requestBody = CommonUtil.joinListParam(nameValuePairs);
             group = nameValuePairs.getString("group");
             bindClient = nameValuePairs.getString("bindClient");
@@ -129,7 +133,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<DefaultFu
 
             try {
                 JSONObject jsonObject = JSONObject.parseObject(postBody);
-                jsonObject.putAll(Multimap.parseQuery(query));
+                jsonObject.putAll(Multimap.parseUrlEncoded(query));
                 group = jsonObject.getString("group");
                 requestBody = jsonObject.toJSONString();
                 bindClient = jsonObject.getString("bindClient");

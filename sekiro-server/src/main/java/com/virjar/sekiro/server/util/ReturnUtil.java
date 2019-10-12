@@ -12,8 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import external.com.alibaba.fastjson.JSON;
 import external.com.alibaba.fastjson.JSONObject;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -62,13 +64,11 @@ public class ReturnUtil {
     public static void writeRes(Channel channel, CommonRes<?> commonRes) {
 
         byte[] bytes = JSON.toJSONString(commonRes).getBytes(StandardCharsets.UTF_8);
-        DefaultHttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(bytes));
 
         httpResponse.headers().set(HeaderNameValue.CONTENT_TYPE, "application/json;charset=utf8;");
-        httpResponse.headers().set(HeaderNameValue.CONTENT_LENGTH, bytes.length);
 
-        channel.write(httpResponse);
-        channel.writeAndFlush(bytes).addListener(ChannelFutureListener.CLOSE);
+        channel.writeAndFlush(httpResponse).addListener(ChannelFutureListener.CLOSE);
 
     }
 

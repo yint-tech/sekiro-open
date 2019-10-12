@@ -21,8 +21,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import external.com.alibaba.fastjson.JSONException;
 import external.com.alibaba.fastjson.JSONObject;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -103,12 +105,10 @@ public class NatClient {
                     }
                 }
 
-                DefaultHttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+                DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(data));
                 httpResponse.headers().set(HeaderNameValue.CONTENT_TYPE, responseContentType);
-                httpResponse.headers().set(HeaderNameValue.CONTENT_LENGTH, data.length);
 
-                channel.write(httpResponse);
-                channel.writeAndFlush(data).addListener(ChannelFutureListener.CLOSE);
+                channel.writeAndFlush(httpResponse).addListener(ChannelFutureListener.CLOSE);
             }
         });
     }

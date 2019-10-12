@@ -1,5 +1,6 @@
 package com.virjar.sekiro.server.netty.http;
 
+import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequestDecoder;
@@ -16,6 +17,6 @@ public class RBHttpRequestDecoder extends HttpRequestDecoder {
 
         String uri = initialLine[1];
 
-        return new RBHttpRequest(version, method, uri, validateHeaders);
+        return new DefaultHttpRequest(version, method, uri, validateHeaders);
     }
 }

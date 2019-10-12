@@ -4,18 +4,21 @@ package com.virjar.sekiro.server.netty.http.msg;
 import com.google.common.base.Charsets;
 import com.virjar.sekiro.server.netty.http.HeaderNameValue;
 
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
-public class DefaultHtmlHttpResponse extends io.netty.handler.codec.http.DefaultHttpResponse {
-    public final byte[] contentByteData;
+public class DefaultHtmlHttpResponse extends DefaultFullHttpResponse {
+    // public final byte[] contentByteData;
 
     public DefaultHtmlHttpResponse(String content) {
-        super(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+        super(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, Unpooled.wrappedBuffer(content.getBytes(Charsets.UTF_8)));
 
-        contentByteData = content.getBytes(Charsets.UTF_8);
+        //contentByteData = content.getBytes(Charsets.UTF_8);
         headers().set(HeaderNameValue.CONTENT_TYPE, "text/html;charset=utf8;");
-        headers().set(HeaderNameValue.CONTENT_LENGTH, contentByteData.length);
+        //  headers().set(HeaderNameValue.CONTENT_LENGTH, contentByteData.length);
     }
 
     private static final String badRequestContent = "<!DOCTYPE html>\n" +
@@ -47,9 +50,14 @@ public class DefaultHtmlHttpResponse extends io.netty.handler.codec.http.Default
             "</body>\n" +
             "</html>";
 
+    public static DefaultHtmlHttpResponse badRequest() {
+        return new DefaultHtmlHttpResponse(badRequestContent);
+    }
 
-    public static DefaultHtmlHttpResponse badRequest = new DefaultHtmlHttpResponse(badRequestContent);
+
+    public static DefaultHtmlHttpResponse notFound() {
+        return new DefaultHtmlHttpResponse(notFoundContent);
+    }
 
 
-    public static DefaultHtmlHttpResponse notFound = new DefaultHtmlHttpResponse(notFoundContent);
 }
