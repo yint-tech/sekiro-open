@@ -131,7 +131,7 @@ natHttpServerPort=5601
 
 BIO:  http://sekiro.virjar.com/invoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
 
-AIO:  http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
+NIO:  http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
 
 可以看到sekiro的demo网站中，都是占用了统一个端口，这是因为存在ngnix转发，你可以参照如下配置实现这个效果:
 ```
