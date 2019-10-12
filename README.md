@@ -66,25 +66,10 @@ android update sdk -u --all --filter itemId(在--all里面，缺少那个选择�
 
 ## client使用
 
-目前API发布在maven快照仓库，通过如下方式添加依赖:
+需要注意，client api发布在maven仓库，而非jcenter仓库
 ```
-repositories {
-    maven {
-        name "aliyunmaven"
-        url "https://maven.aliyun.com/repository/public"
-    }
-    maven {
-        name "aliyunGoogle"
-        url "https://maven.aliyun.com/repository/google"
-    }
-    maven {
-        name "contralSnapshot"
-        url "https://oss.sonatype.org/content/repositories/snapshots/"
-    }
-}
-
 dependencies {
-    implementation 'com.virjar:sekiro-api:1.1.0-SNAPSHOT'
+    implementation 'com.virjar:sekiro-api:1.0.0'
 }
 ```
 
