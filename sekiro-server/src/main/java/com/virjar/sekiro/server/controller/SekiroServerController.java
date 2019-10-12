@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.virjar.sekiro.api.CommonRes;
 import com.virjar.sekiro.server.netty.ChannelRegistry;
 import com.virjar.sekiro.server.netty.NatClient;
+import com.virjar.sekiro.server.util.CommonUtil;
 import com.virjar.sekiro.server.util.ReturnUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -54,7 +55,7 @@ public class SekiroServerController {
         int timeOut = NumberUtils.toInt(httpServletRequest.getParameter("invoke_timeOut"));
         String group = httpServletRequest.getParameter("group");
         String bindClient = httpServletRequest.getParameter("bindClient");
-        String requestBody = joinParam(httpServletRequest.getParameterMap());
+        String requestBody = CommonUtil.joinParam(httpServletRequest.getParameterMap());
         if (httpServletRequest.getMethod().equalsIgnoreCase("post")
                 && StringUtils.containsIgnoreCase(contentType, "application/json;charset=utf8")) {
             try {
@@ -89,23 +90,4 @@ public class SekiroServerController {
     }
 
 
-    private Joiner joiner = Joiner.on('&').skipNulls();
-
-    private String joinParam(Map<String, String[]> params) {
-        if (params == null || params.isEmpty()) {
-            return null;
-        }
-
-        List<String> segment = Lists.newLinkedList();
-        for (Map.Entry<String, String[]> entry : params.entrySet()) {
-            String name = entry.getKey();
-            String[] inputValue = entry.getValue();
-            // List<String> encodeItem = Lists.newArrayListWithExpectedSize(inputValue.length);
-            for (String value : inputValue) {
-                segment.add(URLEncoder.encode(name) + "=" + URLEncoder.encode(value));
-            }
-        }
-        return joiner.join(segment);
-
-    }
 }

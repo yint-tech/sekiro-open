@@ -54,6 +54,10 @@ public class NatClient {
         this.cmdChannel.attr(Constants.CLIENT_KEY).set(clientId);
     }
 
+    public void forward(String paramContent,Channel channel){
+
+    }
+
     public void forward(String paramContent, Integer timeOut, HttpServletResponse httpServletResponse) {
         log.info("request body: {}   clientId:{}", paramContent, clientId);
         long invokeTaskId = invokeSeqGenerator.incrementAndGet();
