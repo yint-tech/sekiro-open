@@ -87,7 +87,7 @@ SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
 安装apk到手机，并打开，然后可以通过服务器访问这个接口
 
 ```
-http://sekiro.virjar.com/channelList
+http://sekiro.virjar.com/groupList
 
 {"status":0,"message":null,"data":["sekiro-demo"],"clientId":null,"ok":true}
 

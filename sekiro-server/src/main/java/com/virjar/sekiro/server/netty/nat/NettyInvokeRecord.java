@@ -2,8 +2,6 @@ package com.virjar.sekiro.server.netty.nat;
 
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 
-import javax.print.attribute.standard.NumberUp;
-
 import lombok.Getter;
 import lombok.Setter;
 
