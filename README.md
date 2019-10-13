@@ -209,7 +209,7 @@ group的作用是区分接口类型，如在sekiro系统中，存在多个不同
 
 action代表group下的不同接口，可以把group叫做接口组，action代表接口。Sekiro的服务调用路由最终到达action层面，实践经验一般来说同一个app，或者说同一个业务，大多需要同时
 暴露多个接口。action最终会映射到一个固定的java handler class下。
-
+```
 SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
         .registerHandler("clientTime",new SekiroRequestHandler(){
             @Override
