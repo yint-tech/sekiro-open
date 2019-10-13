@@ -291,3 +291,8 @@ new SekiroRequestHandler(){
 ```
 
 如果参数是一个map，甚至是一个java pojo对象，这里可以支持自动注册
+
+
+## qq Group
+
+569543649
