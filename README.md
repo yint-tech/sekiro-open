@@ -7,7 +7,7 @@ Sekiro是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/hermes
 1. 对网络环境要求低，sekiro使用长链接管理服务，使得Android手机可以分布于全国各地，甚至全球各地。手机掺合在普通用户群体，方便实现反抓突破，更加适合获取下沉数据。
 2. 不依赖hook框架，就曾经的Hermes系统来说，和xposed框架深度集成，在当今hook框架遍地开花的环境下，框架无法方便迁移。所以在Sekiro的设计中，只提供了RPC功能了。
 3. 纯异步调用，在Hermes和其他曾经出现过的框架中，基本都是同步调用。虽然说签名计算可以达到上百QPS，但是如果用来做业务方法调用的话，由于调用过程穿透到目标app的服务器，会有大量请求占用线程。系统吞吐存在上线(hermes系统达到2000QPS的时候，基本无法横向扩容和性能优化了)。但是Sekiro全程使用NIO，理论上其吞吐可以把资源占满。
-4. 等等
+4. client实时状态，在Hermes系统我使用http进行调用转发，通过手机上报心跳感知手机存活状态。心跳时间至少20s，这导致服务器调度层面对手机在线状态感知不及时，请求过大的时候大量转发调用由于client掉线timeout。在Sekiro长链接管理下，手机掉线可以实时感知。不再出现由于框架层面机制导致timeout
 
 
 # 部署流程
@@ -192,3 +192,102 @@ location /asyncInvoke {
 ```
 
 强烈建议使用NIO接口访问调用服务
+
+# 接口说明
+
+## 基本概念解释
+在Sekiro定义中，有几个特殊概念用来描述手机或者业务类型。了解如何使用Sekiro之前需要知道这几个概念的含义。
+
+
+### group
+group的作用是区分接口类型，如在sekiro系统中，存在多个不同app的服务，那么不同服务通过group区分。或者同一个app的服务也可能存在差异，如登陆和未登陆分不同接口组，签名计算和
+数据请求调用区分不同接口组。Sekiro不限定group具体含义，仅要求group作为一个唯一字符串，使用方需要自行保证各自group下是的手机业务唯一性。
+
+备注：曾经的Hermes系统中，接口组定义为app的packageName，导致同一个app的需求，无法进行二次路由，签名计算和数据调用无法隔离。登陆和未登陆手机无法区分
+
+### action
+
+action代表group下的不同接口，可以把group叫做接口组，action代表接口。Sekiro的服务调用路由最终到达action层面，实践经验一般来说同一个app，或者说同一个业务，大多需要同时
+暴露多个接口。action最终会映射到一个固定的java handler class下。
+
+SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
+        .registerHandler("clientTime",new SekiroRequestHandler(){
+            @Override
+            public void handleRequest(SekiroRequest sekiroRequest,SekiroResponse sekiroResponse){
+                    sekiroResponse.success(" now:"+System.currentTimeMillis()+ " your param1:" + sekiroRequest.getString("param1"));
+            }
+        });
+
+```
+
+demo代码中，会在group:``sekiro-demo``下暴露一个action为:``clientTime``的服务。
+
+### clientId
+clientId用于区分不同手机，同一个接口可以部署在多个手机上，Sekiro会通过轮询策略分配调用流量(暂时使用轮询策略),客户端需要自行保证clientId唯一。如果你没有特殊需要，可以通过AndroidId，也可以使用随机数。
+我更加建议使用手机本身的硬件Id作为clientId，如手机序列号，IMEI。
+
+### bindClient
+这是转发服务提供的一个特殊参数，用于指定特定的手机进行转发调用。如果你的业务在某个手机存在多次调用的事务一致性保证需求，或者你需要在Sekiro上层系统实现手机资源调用调度。那么通过传递参数可以是的Sekiro服务放弃调度策略
+管理。或者在问题排查阶段，将请求发送到特定手机用于观察手机状态
+
+备注: Hermes系统中，存在资源可用性预测算法，使用动态因子完成调用流量负载均衡。Sekiro有同步该算法的计划，除非有特殊需要，一般不建议Sekiro上游系统托管手机资源调度。
+
+备注: 目前Sekiro存在四个保留参数，业务放不能使用这几个作为参数的key，包括:group,action,clientId,invoke_timeOut
+
+## 服务器接口
+
+### 分组列举 /groupList
+
+展示当前系统中注册过的所有group，如果你新开发一个需求，请注意查询一下系统中已有group，避免接口组冲突。内部系统定制可以实现group申请注册，分配注入准入密码等功能。
+
+### client资源列举 /natChannelStatus
+
+展示特定group下，注册过那些手机。上游如需托管调度，那么需要通过这个接口同步client资源。同时也依靠这个接口判定你的客户端是否正确注册。
+
+### 调用转发 /invoke | /asyncInvoke
+
+实现请求到手机的调用转发，区分invoke和asyncInvoke，他们的接口定义一样，只是asyncInvoke使用异步http server实现，一般情况建议使用asyncInvoke。
+
+invoke接口定义比较宽泛，可支持GET/POST,可支持 ``application/x-www-form-urlencoded``和``application/json``,方便传入各种异构参数，不过大多数情况，Get请求就足够使用。
+
+## client接口
+
+之前多次展示client的demo，这里讲诉一下client的食用姿势。
+
+通过SekiroClient#start获取一个SekiroClient实例，至少需要指定：服务器，clientId。Sekiro存在多个重载的start方法，选择合适的使用即可。如:``SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")``
+之后，你需要通过registerHandler注册接口，每个handler就类似SpringMVC里面的一个controller方法，用于处理一个特殊的调用请求。
+
+备注: 可以看到，handleRequest方法没有返回值，这是因为这个接口是异步的，当数据准备好之后通过response写会数据即可。千万注意，不要在这个接口中执行网络请求之类的耗时请求，如果有耗时调用，请单独设定线程或者线程池执行。
+
+
+### SekiroRequest和SekiroResponse
+分别为业务方请求对象包装，和数据返回句柄。SekiroRequest有一堆Get方法，可以获取请求内容。SekiroResponse有一堆send方法用于回写数据。
+
+### 自动参数绑定
+类似springMVC，在请求调用进入方法的时候，一般框架会支持请求内容自动转化为java对象。Sekiro也支持简单的参数绑定。这可以使得handler代码更加优雅。
+参数绑定包括参数自动注入，参数自动转换，参数校验等。这个功能可以节省部分handler入口对于参数的处理逻辑代码。
+如demo:
+```
+new SekiroRequestHandler(){
+            @Override
+            public void handleRequest(SekiroRequest sekiroRequest,SekiroResponse sekiroResponse){
+                    sekiroResponse.success(" now:"+System.currentTimeMillis()+ " your param1:" + sekiroRequest.getString("param1"));
+            }
+        }
+```
+和如下代码等价:
+```
+new SekiroRequestHandler(){
+
+            //这里自动将请求参数中的param1绑定到handler对象的param1参数中
+            @AutoBind
+            private String param1;
+
+            @Override
+            public void handleRequest(SekiroRequest sekiroRequest,SekiroResponse sekiroResponse){
+                    sekiroResponse.success(" now:"+System.currentTimeMillis()+ " your param1:" + param1);
+            }
+        }
+```
+
+如果参数是一个map，甚至是一个java pojo对象，这里可以支持自动注册

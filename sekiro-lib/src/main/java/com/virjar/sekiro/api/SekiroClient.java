@@ -53,6 +53,10 @@ public class SekiroClient {
         }
     }
 
+    public static SekiroClient start(String serverHost, final String clientID) {
+        return start(serverHost, Constants.defaultNatServerPort, clientID, "default");
+    }
+
     public static SekiroClient start(String serverHost, int serverPort, final String clientID) {
         return start(serverHost, serverPort, clientID, "default");
     }
@@ -211,6 +215,11 @@ public class SekiroClient {
 
     public SekiroClient registerHandler(String action, SekiroRequestHandler sekiroRequestHandler) {
         sekiroRequestHandlerManager.registerHandler(action, sekiroRequestHandler);
+        return this;
+    }
+
+    public SekiroClient registerHandler(ActionHandler actionHandler) {
+        sekiroRequestHandlerManager.registerHandler(actionHandler.action(), actionHandler);
         return this;
     }
 

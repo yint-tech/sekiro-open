@@ -74,6 +74,9 @@ public class SekiroRequestHandlerManager {
 
 
     public void registerHandler(String action, SekiroRequestHandler sekiroRequestHandler) {
+        if (TextUtils.isEmpty(action)) {
+            throw new IllegalArgumentException("action empty!!");
+        }
         if (requestHandlerMap.containsKey(action)) {
             throw new IllegalStateException("the request handler: " + sekiroRequestHandler + " for action:" + action + "  registered already!!");
         }
