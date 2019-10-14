@@ -61,6 +61,14 @@ javadoc {
     options.charSet = 'UTF-8'
 }
 
+def getRepositoryUsername() {
+    return hasProperty('MAVEN_USERNAME') ? MAVEN_USERNAME : ""
+}
+
+def getRepositoryPassword() {
+    return hasProperty('MAVEN_PASSWORD') ? MAVEN_PASSWORD : ""
+}
+
 
 publishing {
     publications {
@@ -112,8 +120,8 @@ publishing {
             name 'sonatypeRepository'  // 为你这个仓库起名
             url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
             credentials {
-                username = "${MAVEN_USERNAME}"  // 之前在 sonatype 注册的账户名
-                password = "${MAVEN_PASSWORD}" // 对应的密码
+                username = getRepositoryUsername()
+                password = getRepositoryPassword()
             }
         }
         // snapshots 仓库
@@ -121,8 +129,8 @@ publishing {
             name = 'sonatypeSnapshotRepository'
             url = 'https://oss.sonatype.org/content/repositories/snapshots/'
             credentials {
-                username = "${MAVEN_USERNAME}"
-                password = "${MAVEN_PASSWORD}"
+                username = getRepositoryUsername()
+                password = getRepositoryPassword()
             }
         }
     }
