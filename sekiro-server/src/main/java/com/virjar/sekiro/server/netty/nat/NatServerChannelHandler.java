@@ -42,7 +42,8 @@ public class NatServerChannelHandler extends SimpleChannelInboundHandler<SekiroN
             log.error("serial number not set for client!!");
             return;
         }
-        TaskRegistry.getInstance().forwardClientResponse(clientId, serialNumber, proxyMessage);
+        String group = ctx.channel().attr(Constants.GROUP_KEY).get();
+        TaskRegistry.getInstance().forwardClientResponse(clientId, group, serialNumber, proxyMessage);
     }
 
 
@@ -62,17 +63,23 @@ public class NatServerChannelHandler extends SimpleChannelInboundHandler<SekiroN
     }
 
     private void handleRegisterMessage(ChannelHandlerContext ctx, SekiroNatMessage proxyMessage) {
-        String clientId = proxyMessage.getExtra();
-        if (StringUtils.isBlank(clientId)) {
+        String clientIdAndGroup = proxyMessage.getExtra();
+        if (StringUtils.isBlank(clientIdAndGroup)) {
             log.error("clientId can not empty");
             return;
         }
-        ChannelRegistry.getInstance().registryClient(clientId, ctx.channel());
+        ChannelRegistry.getInstance().registryClient(clientIdAndGroup, ctx.channel());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("error", cause);
         super.exceptionCaught(ctx, cause);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        //TODO release all connect attached with this channel
+        super.channelInactive(ctx);
     }
 }

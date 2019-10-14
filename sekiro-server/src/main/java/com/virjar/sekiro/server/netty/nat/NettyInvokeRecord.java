@@ -8,6 +8,9 @@ import lombok.Setter;
 public class NettyInvokeRecord {
     @Getter
     private String clientId;
+
+    @Getter
+    private String group;
     @Getter
     private long taskId;
     @Getter
@@ -15,8 +18,12 @@ public class NettyInvokeRecord {
 
     private SekiroNatMessage invokeResult;
 
-    public NettyInvokeRecord(String clientId, long taskId, String paramContent) {
+    @Getter
+    private long taskAddTimestamp = System.currentTimeMillis();
+
+    public NettyInvokeRecord(String clientId, String group, long taskId, String paramContent) {
         this.clientId = clientId;
+        this.group = group;
         this.taskId = taskId;
         this.paramContent = paramContent;
     }
@@ -46,13 +53,13 @@ public class NettyInvokeRecord {
     /**
      * 异步返回，需要主动调用这个接口通知数据到达，唤醒http request线程，进行数据回传
      *
-     * @param responseJson 异步返回结果，可以是任何类型
+     * @param sekiroNatMessage 异步返回结果，可以是任何类型
      */
-    public void notifyDataArrival(SekiroNatMessage responseJson) {
-        this.invokeResult = responseJson;
+    public void notifyDataArrival(SekiroNatMessage sekiroNatMessage) {
+        this.invokeResult = sekiroNatMessage;
 
         if (sekiroResponseEvent != null) {
-            sekiroResponseEvent.onSekiroResponse(responseJson);
+            sekiroResponseEvent.onSekiroResponse(sekiroNatMessage);
         } else {
             synchronized (lock) {
                 callbackCalled = true;
@@ -76,8 +83,7 @@ public class NettyInvokeRecord {
     private SekiroResponseEvent sekiroResponseEvent = null;
 
 
-
-   public interface SekiroResponseEvent {
+    public interface SekiroResponseEvent {
         void onSekiroResponse(SekiroNatMessage responseJson);
     }
 }

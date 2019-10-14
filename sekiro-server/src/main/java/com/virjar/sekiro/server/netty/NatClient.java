@@ -25,7 +25,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import lombok.Getter;
@@ -59,12 +58,13 @@ public class NatClient {
         }
         this.cmdChannel = channel;
         this.cmdChannel.attr(Constants.CLIENT_KEY).set(clientId);
+        this.cmdChannel.attr(Constants.GROUP_KEY).set(group);
     }
 
     private NettyInvokeRecord forwardInternal(String paramContent) {
         log.info("request body: {}   clientId:{}", paramContent, clientId);
         long invokeTaskId = invokeSeqGenerator.incrementAndGet();
-        NettyInvokeRecord nettyInvokeRecord = new NettyInvokeRecord(clientId, invokeTaskId, paramContent);
+        NettyInvokeRecord nettyInvokeRecord = new NettyInvokeRecord(clientId, group, invokeTaskId, paramContent);
 
         SekiroNatMessage proxyMessage = new SekiroNatMessage();
         proxyMessage.setType(SekiroNatMessage.TYPE_INVOKE);
@@ -82,6 +82,11 @@ public class NatClient {
         nettyInvokeRecord.setSekiroResponseEvent(new NettyInvokeRecord.SekiroResponseEvent() {
             @Override
             public void onSekiroResponse(SekiroNatMessage sekiroNatMessage) {
+                if (sekiroNatMessage == null) {
+                    ReturnUtil.writeRes(channel, CommonRes.failed("timeout"));
+                    return;
+                }
+
                 byte[] data = sekiroNatMessage.getData();
                 if (data == null) {
                     ReturnUtil.writeRes(channel, CommonRes.success(null));

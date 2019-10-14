@@ -25,6 +25,7 @@ public interface Constants {
     int defaultNatHttpServerPort = 5601;
 
     AttributeKey<String> CLIENT_KEY = AttributeKey.newInstance("client_key");
+    AttributeKey<String> GROUP_KEY = AttributeKey.newInstance("goup_key");
 
     int protocolMagic = 5597;
 }
