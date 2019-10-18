@@ -10,6 +10,8 @@ import com.virjar.sekiro.api.SekiroClient;
 import com.virjar.sekiro.api.SekiroRequest;
 import com.virjar.sekiro.api.SekiroRequestHandler;
 import com.virjar.sekiro.api.SekiroResponse;
+import com.virjar.sekiro.api.databind.AutoBind;
+import com.virjar.sekiro.demo.handlers.ClientTimeHandler;
 import com.virjar.sekiro.demoapp.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,13 +45,7 @@ public class MainActivity extends AppCompatActivity {
                     String clientId = fingerData.getSerial() + "_" + fingerData.getImei();
                     final SekiroClient sekiroClient = SekiroClient.start("sekiro.virjar.com", clientId, "sekiro-demo");
 
-                    sekiroClient.registerHandler("clientTime", new SekiroRequestHandler() {
-                        @Override
-                        public void handleRequest(SekiroRequest sekiroRequest, SekiroResponse sekiroResponse) {
-                            sekiroResponse.success("process: " + MainActivity.this.getPackageName() + " : now:" + System.currentTimeMillis() + " your param1:" + sekiroRequest.getString("param1"));
-                        }
-                    });
-
+                    sekiroClient.registerHandler("clientTime", new ClientTimeHandler());
                     break;
                 }
             }

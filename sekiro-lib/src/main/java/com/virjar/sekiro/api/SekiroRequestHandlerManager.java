@@ -3,12 +3,17 @@ package com.virjar.sekiro.api;
 import android.text.TextUtils;
 
 import com.virjar.sekiro.api.databind.ActionRequestHandlerGenerator;
+import com.virjar.sekiro.api.databind.AutoBind;
 import com.virjar.sekiro.api.databind.DirectMapGenerator;
 import com.virjar.sekiro.api.databind.EmptyARCreateHelper;
 import com.virjar.sekiro.api.databind.FieldBindGenerator;
 import com.virjar.sekiro.api.databind.ICRCreateHelper;
+import com.virjar.sekiro.api.databind.InnerClassCreateHelper;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.utils.Defaults;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -25,7 +30,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import io.netty.channel.Channel;
 
+
 public class SekiroRequestHandlerManager {
+    private static final Logger log = LoggerFactory.getLogger(SekiroRequestHandlerManager.class);
     private static final String action = "action";
     private static final String actionList = "__actionList";
 
@@ -68,6 +75,7 @@ public class SekiroRequestHandlerManager {
         try {
             actionRequestHandlerGenerator.gen(sekiroRequest).handleRequest(sekiroRequest, sekiroResponse);
         } catch (Throwable throwable) {
+            log.error("failed to generate action request handler", throwable);
             sekiroResponse.failed(CommonRes.statusError, throwable);
         }
     }
@@ -94,10 +102,58 @@ public class SekiroRequestHandlerManager {
                 instanceCreateHelper = new EmptyARCreateHelper(actionRequestHandler.getClass());
                 break;
             }
-            if (constructor.getParameterTypes().length == 1 && SekiroRequest.class.isAssignableFrom(constructor.getParameterTypes()[0])) {
-                canAutoCreateInstance = true;
-                instanceCreateHelper = new ICRCreateHelper(constructor);
-                break;
+            if (constructor.getParameterTypes().length == 1) {
+                if (SekiroRequest.class.isAssignableFrom(constructor.getParameterTypes()[0])) {
+                    canAutoCreateInstance = true;
+                    instanceCreateHelper = new ICRCreateHelper(constructor);
+                    break;
+                } else if (actionRequestHandler.getClass().getName().startsWith(constructor.getParameterTypes()[0].getName())) {
+
+                    // 可能是匿名内部类，这个时候也需要支持注入
+                    //com.virjar.sekiro.demo.MainActivity$1$1
+                    //com.virjar.sekiro.demo.MainActivity$1
+                    String simpleInnerClassName = actionRequestHandler.getClass().getName().substring(constructor.getParameterTypes()[0].getName().length());
+                    //$1
+                    if (simpleInnerClassName.startsWith("$")) {
+                        //确定是匿名内部类
+                        //find out class object instance
+                        Object outClassObjectInstance = null;
+                        boolean hasAutoBindAnnotation = false;
+                        for (Field field : actionRequestHandler.getClass().getDeclaredFields()) {
+                            if (!field.isSynthetic()) {
+                                continue;
+                            }
+
+                            AutoBind fieldAnnotation = field.getAnnotation(AutoBind.class);
+                            if (fieldAnnotation != null) {
+                                hasAutoBindAnnotation = true;
+                            }
+
+                            if (!field.getType().equals(constructor.getParameterTypes()[0])) {
+                                continue;
+                            }
+
+                            field.setAccessible(true);
+                            try {
+                                outClassObjectInstance = field.get(actionRequestHandler);
+                                break;
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        if (outClassObjectInstance != null && hasAutoBindAnnotation) {
+//                            canAutoCreateInstance = true;
+//                            Class<? extends SekiroRequestHandler> aClass = actionRequestHandler.getClass();
+//                            instanceCreateHelper = new InnerClassCreateHelper(constructor, outClassObjectInstance);
+//                            break;
+                            //不支持匿名内部类的自动绑定
+                            throw new IllegalStateException("can not bind attribute for InnerClass object");
+                        }
+                    }
+                }
+
+
             }
         }
         if (!canAutoCreateInstance) {
