@@ -268,29 +268,30 @@ invoke接口定义比较宽泛，可支持GET/POST,可支持 ``application/x-www
 参数绑定包括参数自动注入，参数自动转换，参数校验等。这个功能可以节省部分handler入口对于参数的处理逻辑代码。
 如demo:
 ```
-new SekiroRequestHandler(){
-            @Override
-            public void handleRequest(SekiroRequest sekiroRequest,SekiroResponse sekiroResponse){
-                    sekiroResponse.success(" now:"+System.currentTimeMillis()+ " your param1:" + sekiroRequest.getString("param1"));
-            }
-        }
+public class ClientTimeHandler implements SekiroRequestHandler {
+
+    @Override
+    public void handleRequest(SekiroRequest sekiroRequest, SekiroResponse sekiroResponse) {
+        sekiroResponse.success("process: " + DemoApplication.getInstance().getPackageName() + " : now:" + System.currentTimeMillis() + " your param1:" + sekiroRequest.getString("param1"));
+    }
+}
+
 ```
 和如下代码等价:
 ```
-new SekiroRequestHandler(){
+public class ClientTimeHandler implements SekiroRequestHandler {
+     //这里自动将请求参数中的param1绑定到handler对象的param1参数中
+    @AutoBind
+    private String param1;
 
-            //这里自动将请求参数中的param1绑定到handler对象的param1参数中
-            @AutoBind
-            private String param1;
-
-            @Override
-            public void handleRequest(SekiroRequest sekiroRequest,SekiroResponse sekiroResponse){
-                    sekiroResponse.success(" now:"+System.currentTimeMillis()+ " your param1:" + param1);
-            }
-        }
+    @Override
+    public void handleRequest(SekiroRequest sekiroRequest, SekiroResponse sekiroResponse) {
+        sekiroResponse.success("process: " + DemoApplication.getInstance().getPackageName() + " : now:" + System.currentTimeMillis() + " your param1:" + param1);
+    }
+}
 ```
 
-如果参数是一个map，甚至是一个java pojo对象，这里可以支持自动注册
+如果参数是一个map，甚至是一个java pojo对象，这里可以支持自动注册。不过需要注意，匿名内部类的handler不支持自动绑定参数
 
 
 ## qq Group
