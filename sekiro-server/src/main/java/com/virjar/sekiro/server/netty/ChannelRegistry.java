@@ -147,6 +147,9 @@ public class ChannelRegistry {
     }
 
     public List<String> channelStatus(String group) {
+        if (group == null) {
+            return Collections.emptyList();
+        }
         ClientGroup clientGroup = clientGroupMap.get(group);
         if (clientGroup == null) {
             return Collections.emptyList();
