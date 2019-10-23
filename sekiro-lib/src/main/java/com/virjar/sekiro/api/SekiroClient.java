@@ -102,7 +102,7 @@ public class SekiroClient {
             natClientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
-                    socketChannel.pipeline().addLast(new SekiroNatMessageDecoder(Constants.MAX_FRAME_LENGTH, Constants.LENGTH_FIELD_OFFSET, Constants.LENGTH_FIELD_LENGTH, Constants.LENGTH_ADJUSTMENT, Constants.INITIAL_BYTES_TO_STRIP));
+                    socketChannel.pipeline().addLast(new SekiroNatMessageDecoder());
                     socketChannel.pipeline().addLast(new SekiroMessageEncoder());
 
                     socketChannel.pipeline().addLast(new ClientIdleCheckHandler(SekiroClient.this));

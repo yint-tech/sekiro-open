@@ -50,12 +50,7 @@ public class SekiroNatServer implements InitializingBean {
 
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        socketChannel.pipeline().addLast(new SekiroNatMessageDecoder(
-                                Constants.MAX_FRAME_LENGTH,
-                                Constants.LENGTH_FIELD_OFFSET,
-                                Constants.LENGTH_FIELD_LENGTH,
-                                Constants.LENGTH_ADJUSTMENT,
-                                Constants.INITIAL_BYTES_TO_STRIP));
+                        socketChannel.pipeline().addLast(new SekiroNatMessageDecoder());
                         socketChannel.pipeline().addLast(new SekiroMessageEncoder());
                         socketChannel.pipeline().addLast(new ServerIdleCheckHandler());
                         socketChannel.pipeline().addLast(new NatServerChannelHandler());
