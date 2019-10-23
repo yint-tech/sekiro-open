@@ -66,10 +66,11 @@ public class SekiroNatMessageDecoder extends ByteToMessageDecoder {
                 return;
             }
 
-            int frameLength = in.readInt();
+            int frameLength = in.getInt(0);
             if (in.readableBytes() < frameLength) {
                 return;
             }
+            in.readInt();
             SekiroNatMessage sekiroNatMessage = new SekiroNatMessage();
             byte type = in.readByte();
             long sn = in.readLong();
