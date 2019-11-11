@@ -1,8 +1,6 @@
 package com.virjar.sekiro.server.controller;
 
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.virjar.sekiro.api.CommonRes;
 import com.virjar.sekiro.server.netty.ChannelRegistry;
 import com.virjar.sekiro.server.netty.NatClient;
@@ -19,9 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,7 +48,13 @@ public class SekiroServerController {
     @RequestMapping(value = "/invoke", method = {RequestMethod.GET, RequestMethod.POST})
     public void invoke(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
         String contentType = httpServletRequest.getContentType();
-        int timeOut = NumberUtils.toInt(httpServletRequest.getParameter("invoke_timeOut"));
+        String invokeTimeoutString = httpServletRequest.getParameter("invoke_timeout");
+        if (StringUtils.isBlank(invokeTimeoutString)) {
+            //正确写法应该是invoke_timeout，由于历史原因存在错别字
+            invokeTimeoutString = httpServletRequest.getParameter("invoke_timeOut");
+        }
+
+        int timeOut = NumberUtils.toInt(invokeTimeoutString);
         String group = httpServletRequest.getParameter("group");
         String bindClient = httpServletRequest.getParameter("bindClient");
         String requestBody = CommonUtil.joinParam(httpServletRequest.getParameterMap());
@@ -67,9 +69,9 @@ public class SekiroServerController {
             }
         }
 
-        if (timeOut < 1) {
-            //默认5s的超时时间
-            timeOut = 5000;
+        if (timeOut < 500) {
+            //默认15s的超时时间
+            timeOut = 15000;
         }
 
         NatClient natClient;
