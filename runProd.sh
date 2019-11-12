@@ -12,6 +12,7 @@ fi
 
 echo refresh code
 git clean -dfx
+git reset --hard
 git pull
 
 echo "assemble jar"
