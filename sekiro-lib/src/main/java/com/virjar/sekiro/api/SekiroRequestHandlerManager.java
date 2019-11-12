@@ -8,7 +8,6 @@ import com.virjar.sekiro.api.databind.DirectMapGenerator;
 import com.virjar.sekiro.api.databind.EmptyARCreateHelper;
 import com.virjar.sekiro.api.databind.FieldBindGenerator;
 import com.virjar.sekiro.api.databind.ICRCreateHelper;
-import com.virjar.sekiro.api.databind.InnerClassCreateHelper;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.utils.Defaults;
 
@@ -50,6 +49,7 @@ public class SekiroRequestHandlerManager {
             sekiroRequest.getString("ensure mode parsed");
         } catch (Exception e) {
             sekiroResponse.failed(CommonRes.statusBadRequest, e);
+            return;
         }
 
         String action = sekiroRequest.getString(SekiroRequestHandlerManager.action);
