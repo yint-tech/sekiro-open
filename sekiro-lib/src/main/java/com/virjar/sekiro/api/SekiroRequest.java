@@ -1,6 +1,8 @@
 package com.virjar.sekiro.api;
 
 
+import com.virjar.sekiro.log.SekiroLogger;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,6 +133,7 @@ public class SekiroRequest {
             }
             String paramContent = new String(requestData, StandardCharsets.UTF_8);
             paramContent = paramContent.trim();
+            SekiroLogger.info("receive invoke request: " + paramContent + "  requestId: " + serialNo);
             if (paramContent.startsWith("{")) {
                 try {
                     jsonModel = JSONObject.parseObject(paramContent);

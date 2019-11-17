@@ -1,8 +1,8 @@
 package com.virjar.sekiro.netty.client;
 
 import com.virjar.sekiro.api.SekiroClient;
+import com.virjar.sekiro.log.SekiroLogger;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
-
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,7 +40,7 @@ public class ClientChannelHandler extends SimpleChannelInboundHandler<SekiroNatM
         super.channelInactive(ctx);
         Channel cmdChannel = sekiroClient.getCmdChannel();
         if (cmdChannel == ctx.channel()) {
-            System.out.println("channel inactive ,reconnect to nat server");
+            SekiroLogger.warn("channel inactive ,reconnect to nat server");
             sekiroClient.connectNatServer();
         }
     }
@@ -49,6 +49,7 @@ public class ClientChannelHandler extends SimpleChannelInboundHandler<SekiroNatM
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         //System.out.println("exception caught: ", cause);
         cause.printStackTrace();
+        SekiroLogger.error("exception caught", cause);
         super.exceptionCaught(ctx, cause);
     }
 }

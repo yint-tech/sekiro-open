@@ -293,6 +293,34 @@ public class ClientTimeHandler implements SekiroRequestHandler {
 
 如果参数是一个map，甚至是一个java pojo对象，这里可以支持自动注册。不过需要注意，匿名内部类的handler不支持自动绑定参数
 
+## 日志规范
+sekiro代码Android和java server共用，但是日志框架两端对齐存在问题。服务器端我才用logback+slf4j的方案。但是这个方案在Android端无法较好的使用，由于sekiro多在代码注入环境下使用，
+Android端的slf4j的驱动``api 'com.github.tony19:logback-android:1.3.0-2'``依赖assets资源配置，或者代码主动配置，这样灵活性不好。
+
+针对于客户端和两端共用代码，我单独抽取日志模块。并实现他们在服务端环境和Android端环境的路由切换。Android端使用原生logger:``android.util.Log``,服务端使用slf4j。
+
+sekiro整体日志，使用同一个logger输出。不提供不同模块日志开关或者输出等各种自定义需求。android端使用tag:``Sekiro``，服务端使用name为：``Sekiro``的logger。
+不过这个名字可以被修改，他是一个静态变量:``com.virjar.sekiro.log.SekiroLogger.tag``
+
+在android logcat中，可以通过tag过滤sekiro相关日志：
+```
+virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
+--------- beginning of system
+--------- beginning of crash
+--------- beginning of main
+11-17 16:28:36.439 27941 27995 I Sekiro  : test sekiro log
+11-17 16:28:36.439 27941 27995 I Sekiro  : connect to nat server at service startUp
+11-17 16:28:36.450 27941 27997 I Sekiro  : connect to nat server...
+11-17 16:28:36.505 27941 28000 I Sekiro  : connect to nat server success:[id: 0x9f83ed84, L:/192.168.0.10:41434 - R:sekiro.virjar.com/47.94.106.20:5600]
+11-17 16:28:41.624 27941 28000 I Sekiro  : receive invoke request: group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0  requestId: 15
+11-17 16:28:41.656 27941 28000 I Sekiro  : invoke response: {"data":"process: com.virjar.sekiro.demoapp : now:1573979321626 your param1:自定义参数","ok":true,"status":0}
+11-17 16:28:44.443 27941 28000 I Sekiro  : receive invoke request: group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0  requestId: 16
+11-17 16:28:44.445 27941 28000 I Sekiro  : invoke response: {"data":"process: com.virjar.sekiro.demoapp : now:1573979324444 your param1:自定义参数","ok":true,"status":0}
+11-17 16:28:45.620 27941 28000 I Sekiro  : receive invoke request: group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0  requestId: 17
+11-17 16:28:45.624 27941 28000 I Sekiro  : invoke response: {"data":"process: com.virjar.sekiro.demoapp : now:1573979325621 your param1:自定义参数","ok":true,"status":0}
+```
+
+如果你想托管日志输出规则，那么通过静态方法:``com.virjar.sekiro.log.SekiroLogger.setLogger(com.virjar.sekiro.log.ILogger logger)``覆盖默认实现即可
 
 ## qq Group
 

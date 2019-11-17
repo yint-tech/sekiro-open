@@ -17,7 +17,6 @@ public class DemoApplication extends Application {
         mInstance = this;
         HiddenAPIEnforcementPolicyUtils.bypassHiddenAPIEnforcementPolicyIfNeeded();
 
-        LogConfigurator.confifure();
         FingerDataLoader.refreshFinger();
 
 

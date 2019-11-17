@@ -1,9 +1,7 @@
 package com.virjar.sekiro.api;
 
+import com.virjar.sekiro.log.SekiroLogger;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -24,7 +22,6 @@ public class SekiroResponse {
     private SekiroRequest request;
     private Channel channel;
     private boolean closed = false;
-    private static final Logger logger = LoggerFactory.getLogger(SekiroResponse.class);
 
     public SekiroResponse(SekiroRequest request, Channel channel) {
         this.request = request;
@@ -39,7 +36,7 @@ public class SekiroResponse {
      */
     public void send(String contentType, byte[] bytes) {
         if (closed) {
-            logger.warn("response send already!");
+            SekiroLogger.warn("response send already!");
             return;
         }
         SekiroNatMessage sekiroNatMessage = new SekiroNatMessage();
@@ -59,6 +56,7 @@ public class SekiroResponse {
 
     public void send(String contentType, String string) {
         send(contentType, string.getBytes(StandardCharsets.UTF_8));
+        SekiroLogger.info("invoke response: " + string);
     }
 
     public void send(String string) {
