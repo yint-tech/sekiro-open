@@ -69,7 +69,7 @@ android update sdk -u --all --filter itemId(在--all里面，缺少那个选择�
 需要注意，client api发布在maven仓库，而非jcenter仓库
 ```
 dependencies {
-    implementation 'com.virjar:sekiro-api:1.0.0'
+    implementation 'com.virjar:sekiro-api:1.0.1'
 }
 ```
 
