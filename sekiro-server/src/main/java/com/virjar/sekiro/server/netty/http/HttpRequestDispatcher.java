@@ -5,13 +5,14 @@ import com.virjar.sekiro.api.Multimap;
 import com.virjar.sekiro.server.netty.ChannelRegistry;
 import com.virjar.sekiro.server.netty.NatClient;
 import com.virjar.sekiro.server.netty.http.msg.DefaultHtmlHttpResponse;
-import com.virjar.sekiro.server.util.CommonUtil;
 import com.virjar.sekiro.server.util.ReturnUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 import external.com.alibaba.fastjson.JSONException;
 import external.com.alibaba.fastjson.JSONObject;
@@ -19,9 +20,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +92,16 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpR
 
 
         //now build request
-        String postBody = null;
+        JSONObject requestJson = new JSONObject();
+        if (StringUtils.isNotBlank(query)) {
+            for (Map.Entry<String, List<String>> entry : Multimap.parseUrlEncoded(query).entrySet()) {
+                if (entry.getValue() == null || entry.getValue().size() == 0) {
+                    continue;
+                }
+                requestJson.put(entry.getKey(), entry.getValue().get(0));
+            }
+        }
+
         if (method.equals(HttpMethod.POST)) {
             byte[] array = request.content().array();
             String charset = contentType.getCharset();
@@ -102,47 +109,31 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpR
             if (charset == null) {
                 charset = StandardCharsets.UTF_8.name();
             }
-
             if (array != null) {
+                String postBody;
                 try {
                     postBody = new String(array, charset);
                 } catch (UnsupportedEncodingException e) {
                     postBody = new String(array);
                 }
+                try {
+                    requestJson.putAll(JSONObject.parseObject(postBody));
+                } catch (JSONException e) {
+                    for (Map.Entry<String, List<String>> entry : Multimap.parseUrlEncoded(postBody).entrySet()) {
+                        if (entry.getValue() == null || entry.getValue().size() == 0) {
+                            continue;
+                        }
+                        requestJson.put(entry.getKey(), entry.getValue().get(0));
+                    }
+                }
             }
         }
 
-        if (StringUtils.isBlank(postBody) && StringUtils.isBlank(query)) {
-            //TODO
-            log.warn("request body empty");
-            Channel channel = channelHandlerContext.channel();
-            channel.writeAndFlush(DefaultHtmlHttpResponse.badRequest()).addListener(ChannelFutureListener.CLOSE);
-            return;
-        }
+        String group = requestJson.getString("group");
+        String bindClient = requestJson.getString("bindClient");
 
-        String group;
-        String requestBody;
-        String bindClient;
-        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getMimeType())) {
-            Multimap nameValuePairs = Multimap.parseUrlEncoded(query);
-            nameValuePairs.putAll(Multimap.parseUrlEncoded(postBody));
-            requestBody = CommonUtil.joinListParam(nameValuePairs);
-            group = nameValuePairs.getString("group");
-            bindClient = nameValuePairs.getString("bindClient");
-        } else {
-
-            try {
-                JSONObject jsonObject = JSONObject.parseObject(postBody);
-                jsonObject.putAll(Multimap.parseUrlEncoded(query));
-                group = jsonObject.getString("group");
-                requestBody = jsonObject.toJSONString();
-                bindClient = jsonObject.getString("bindClient");
-            } catch (JSONException e) {
-                //TODO
-                log.warn("request body empty");
-                ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("request body empty"));
-                return;
-            }
+        if (StringUtils.isBlank(group)) {
+            ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("the param {group} not presented"));
         }
 
         NatClient natClient;
@@ -159,6 +150,6 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpR
             ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("no device online"));
             return;
         }
-        natClient.forward(requestBody, channelHandlerContext.channel());
+        natClient.forward(requestJson.toJSONString(), channelHandlerContext.channel());
     }
 }
