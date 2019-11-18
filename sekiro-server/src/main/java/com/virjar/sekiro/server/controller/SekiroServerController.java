@@ -72,7 +72,11 @@ public class SekiroServerController {
             }
             try {
                 String requestJSONBody = IOUtils.toString(httpServletRequest.getInputStream(), charset);
-                requestJson.putAll(JSONObject.parseObject(requestJSONBody));
+                JSONObject jsonObject = JSONObject.parseObject(requestJSONBody);
+                for (String key : jsonObject.keySet()) {
+                    requestJson.put(key, jsonObject.get(key));
+                }
+
             } catch (IOException e) {
                 log.error("error for decode http request", e);
                 ReturnUtil.writeRes(httpServletResponse, ReturnUtil.failed(e));
