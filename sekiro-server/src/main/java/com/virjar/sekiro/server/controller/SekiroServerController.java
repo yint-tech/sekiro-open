@@ -93,6 +93,7 @@ public class SekiroServerController {
 
         if (StringUtils.isBlank(group)) {
             ReturnUtil.writeRes(httpServletResponse, ReturnUtil.failed("the param {group} not presented"));
+            return;
         }
 
         if (timeOut < 500) {

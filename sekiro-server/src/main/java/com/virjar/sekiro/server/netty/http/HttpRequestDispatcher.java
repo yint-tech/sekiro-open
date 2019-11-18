@@ -129,6 +129,7 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpR
 
         if (StringUtils.isBlank(group)) {
             ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("the param {group} not presented"));
+            return;
         }
 
         NatClient natClient;
