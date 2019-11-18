@@ -4,6 +4,7 @@ package com.virjar.sekiro.server.controller;
 import com.virjar.sekiro.api.CommonRes;
 import com.virjar.sekiro.server.netty.ChannelRegistry;
 import com.virjar.sekiro.server.netty.NatClient;
+import com.virjar.sekiro.server.netty.http.ContentType;
 import com.virjar.sekiro.server.util.ReturnUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -60,9 +62,16 @@ public class SekiroServerController {
             requestJson.put(entry.getKey(), value[0]);
         }
         if (httpServletRequest.getMethod().equalsIgnoreCase("post")
-                && StringUtils.containsIgnoreCase(contentType, "application/json;charset=utf8")) {
+                && StringUtils.containsIgnoreCase(contentType, "application/json")) {
+            ContentType contentTypeObject = ContentType.from(contentType);
+
+            assert contentTypeObject != null;
+            String charset = contentTypeObject.getCharset();
+            if (StringUtils.isBlank(charset)) {
+                charset = StandardCharsets.UTF_8.name();
+            }
             try {
-                String requestJSONBody = IOUtils.toString(httpServletRequest.getInputStream());
+                String requestJSONBody = IOUtils.toString(httpServletRequest.getInputStream(), charset);
                 requestJson.putAll(JSONObject.parseObject(requestJSONBody));
             } catch (IOException e) {
                 log.error("error for decode http request", e);
