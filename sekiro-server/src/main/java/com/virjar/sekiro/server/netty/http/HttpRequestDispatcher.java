@@ -9,7 +9,7 @@ import com.virjar.sekiro.server.util.ReturnUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -103,30 +103,25 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpR
         }
 
         if (method.equals(HttpMethod.POST)) {
-            byte[] array = request.content().array();
+
             String charset = contentType.getCharset();
 
             if (charset == null) {
                 charset = StandardCharsets.UTF_8.name();
             }
-            if (array != null) {
-                String postBody;
-                try {
-                    postBody = new String(array, charset);
-                } catch (UnsupportedEncodingException e) {
-                    postBody = new String(array);
-                }
-                try {
-                    requestJson.putAll(JSONObject.parseObject(postBody));
-                } catch (JSONException e) {
-                    for (Map.Entry<String, List<String>> entry : Multimap.parseUrlEncoded(postBody).entrySet()) {
-                        if (entry.getValue() == null || entry.getValue().size() == 0) {
-                            continue;
-                        }
-                        requestJson.put(entry.getKey(), entry.getValue().get(0));
+            String postBody = request.content().toString(Charset.forName(charset));
+
+            try {
+                requestJson.putAll(JSONObject.parseObject(postBody));
+            } catch (JSONException e) {
+                for (Map.Entry<String, List<String>> entry : Multimap.parseUrlEncoded(postBody).entrySet()) {
+                    if (entry.getValue() == null || entry.getValue().size() == 0) {
+                        continue;
                     }
+                    requestJson.put(entry.getKey(), entry.getValue().get(0));
                 }
             }
+
         }
 
         String group = requestJson.getString("group");
