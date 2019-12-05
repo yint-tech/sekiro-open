@@ -59,6 +59,9 @@ android update sdk -u --all --filter itemId(在--all里面，缺少那个选择�
 1. 当前目录执行代码: ``./gradlew sekiro-server:bootJar``  即可在 `` sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar``找到all-in-one的jar包
 2. 通过命令 ``nohup java -jar sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar >/dev/null 2>&1  &`` 即可启动服务器
 
+### docker 部署
+参见项目: https://github.com/lbbniu/sekiro-server
+
 ### 端口配置
 
 在``sekiro-server/src/main/resources/appliation.properties``中可以配置三个服务端端口
