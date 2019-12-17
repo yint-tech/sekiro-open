@@ -73,7 +73,7 @@ public class ChannelRegistry {
                 if (!poll.getCmdChannel().isActive()) {
                     //TODO queue 的数据结构不合理，需要支持线性remove
                     NatClient realNatClient = natClientMap.get(poll.getClientId());
-                    if (realNatClient != poll) {
+                    if (realNatClient == poll) {
                         log.info("remove channel for client:{}", poll.getClientId());
                         natClientMap.remove(poll.getClientId());
                     }
