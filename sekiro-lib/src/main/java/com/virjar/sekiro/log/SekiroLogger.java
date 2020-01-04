@@ -32,6 +32,7 @@ public class SekiroLogger {
         try {
             LoggerFactory.getLogger(tag).info("test sekiro log");
             logger = new Slf4jLogger();
+            return;
         } catch (Throwable throwable) {
             //ignore
         }
