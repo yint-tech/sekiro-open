@@ -37,6 +37,9 @@ public class SekiroServerController {
     @GetMapping("/natChannelStatus")
     @ResponseBody
     public CommonRes<?> natChannelStatus(String group) {
+        if (StringUtils.isBlank(group)) {
+            return CommonRes.failed("the param:{group} not present");
+        }
         List<String> stringListMap = ChannelRegistry.getInstance().channelStatus(group);
         return CommonRes.success(stringListMap);
     }
