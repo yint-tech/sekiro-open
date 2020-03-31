@@ -325,6 +325,13 @@ virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
 
 如果你想托管日志输出规则，那么通过静态方法:``com.virjar.sekiro.log.SekiroLogger.setLogger(com.virjar.sekiro.log.ILogger logger)``覆盖默认实现即可
 
+
+## 其他语言
+
+目前sekiro定位为Android框架，如果你在其他平台，或者使用java以外的语言接入sekiro，那么你需要自己实现Sekiro的交互协议
+
+协议参见Sekiro二进制协议文档: [protoal.md](protocal.md)
+
 ## 相关分析文章
 
 [https://github.com/langgithub/sekiro-lang](https://github.com/langgithub/sekiro-lang)
