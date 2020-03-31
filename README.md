@@ -338,6 +338,7 @@ virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
 
 [https://bbs.nightteam.cn/thread-86.htm](https://bbs.nightteam.cn/thread-86.htm)
 
+[https://www.jianshu.com/p/6b71106c45eb?from=timeline](https://www.jianshu.com/p/6b71106c45eb?from=timeline)
 
 ## qq Group
 
