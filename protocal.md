@@ -20,6 +20,9 @@ struct SekiroPacket {
     char *payload;
 };
 ```
+
+需要注意，数字编码方式为大端！！！请以大端方式编码所有数字
+
 ### packet_length计算算法:
 packet_length =  sizeof(int8_t) + sizeof(int64_t) + sizeof(int8_t) + ext_length + payload_length
 
