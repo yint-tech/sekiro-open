@@ -2,7 +2,6 @@ package com.virjar.sekiro.server.util;
 
 import com.virjar.sekiro.api.CommonRes;
 import com.virjar.sekiro.server.netty.http.HeaderNameValue;
-import com.virjar.sekiro.server.netty.http.msg.DefaultHtmlHttpResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +15,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
@@ -31,9 +29,22 @@ public class ReturnUtil {
 
     public static CommonRes<Object> from(JSONObject jsonObject, String clientId) {
         CommonRes<Object> ret = new CommonRes<>();
-        ret.setStatus(jsonObject.getInteger("status"));
+        Integer status = jsonObject.getInteger("status");
+        if (status == null) {
+            status = jsonObject.getInteger("code");
+        }
+        if (status == null) {
+            status = 0;
+        }
+        ret.setStatus(status);
         ret.setMessage(jsonObject.getString("message"));
+        if (ret.getMessage() == null) {
+            ret.setMessage(jsonObject.getString("msg"));
+        }
         ret.setData(jsonObject.get("data"));
+        if (ret.getData() == null) {
+            ret.setData(jsonObject);
+        }
         if (clientId != null) {
             ret.setClientId(clientId);
         }
