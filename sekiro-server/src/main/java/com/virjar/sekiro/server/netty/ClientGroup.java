@@ -24,7 +24,8 @@ class ClientGroup {
     //对象操作全部加锁，防止并发紊乱
     synchronized List<NatClient> queue() {
         List<NatClient> ret = Lists.newArrayListWithCapacity(poolQueue.size());
-        for (String key : poolQueue) {
+        // java.util.ConcurrentModificationException
+        for (String key : Lists.newArrayList(poolQueue)) {
             NatClient natClient = natClientMap.get(key);
             if (natClient == null) {
                 natClientMap.remove(key);
