@@ -50,7 +50,15 @@ public class ContentType {
             ret.mimeType = contentTypeString.trim();
         } else {
             ret.mimeType = contentTypeString.substring(0, splitterIndex);
-            ret.charset = contentTypeString.substring(splitterIndex + 1).trim();
+            ret.charset = contentTypeString.substring(splitterIndex + 1).trim().toLowerCase();
+
+            if (ret.charset.startsWith("charset")) {
+                String str = ret.charset.substring("charset".length()).trim();
+                if (str.startsWith("=")) {
+                    str = str.substring(1);
+                }
+                ret.charset = str;
+            }
         }
 
         //parse mainType & subType
