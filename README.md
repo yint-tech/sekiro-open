@@ -113,7 +113,7 @@ client demo在``app-demo``子工程可以看到，直接运行app-demo，即可�
 
 Sekiro本身不提供代码注入功能，不过Sekiro一般需要和代码注入框架配合产生作用，如和Xposed配合，可以方便调用app内部私有API，一般情况下，在Xposed入口启动Sekiro，然后接受服务器指令,并将参数转发到app内部。
 
-Sekiro调用真实apk的例子： https://github.com/virjar/sekiro-demo  在微视中，注入代码进行搜索请求暴露，可绕过qq的jce解析解析
+Sekiro调用真实apk的例子： *为避免风险，现已经移除Demo*
 
 
 # 服务器异步http
