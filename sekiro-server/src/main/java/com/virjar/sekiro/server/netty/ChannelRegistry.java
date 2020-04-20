@@ -2,6 +2,7 @@ package com.virjar.sekiro.server.netty;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.virjar.sekiro.api.CommonRes;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -109,4 +110,18 @@ public class ChannelRegistry {
         return Lists.newArrayList(clientGroupMap.keySet());
     }
 
+    public CommonRes<?> forceDisconnect(String group, String clientId) {
+        if (group == null) {
+            return CommonRes.failed("need param:{group}");
+        }
+        ClientGroup clientGroup = clientGroupMap.get(group);
+        if (clientGroup == null) {
+            return CommonRes.failed("no group:{" + group + "}");
+        }
+        String errorMessage = clientGroup.disconnect(clientId);
+        if (errorMessage != null) {
+            return CommonRes.failed(errorMessage);
+        }
+        return CommonRes.success("ok");
+    }
 }

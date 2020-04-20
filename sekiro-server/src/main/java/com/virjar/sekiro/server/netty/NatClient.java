@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletOutputStream;
@@ -42,6 +43,8 @@ public class NatClient {
     @Getter
     private Channel cmdChannel;
 
+    private AtomicInteger timeOutCount = new AtomicInteger(0);
+
     private AtomicLong invokeSeqGenerator = new AtomicLong(0L);
 
     public NatClient(String clientId, String group, Channel cmdChannel) {
@@ -59,6 +62,7 @@ public class NatClient {
         this.cmdChannel = channel;
         this.cmdChannel.attr(Constants.CLIENT_KEY).set(clientId);
         this.cmdChannel.attr(Constants.GROUP_KEY).set(group);
+        timeOutCount.set(0);
     }
 
     private NettyInvokeRecord forwardInternal(String paramContent) {
@@ -77,6 +81,13 @@ public class NatClient {
         return nettyInvokeRecord;
     }
 
+    private void checkDisconnectForTimeout() {
+        if (timeOutCount.get() > 5) {
+            log.warn("连续5次调用超时，主动关闭连接...");
+            cmdChannel.close();
+        }
+    }
+
     public void forward(String paramContent, final Channel channel) {
         NettyInvokeRecord nettyInvokeRecord = forwardInternal(paramContent);
         nettyInvokeRecord.setSekiroResponseEvent(new NettyInvokeRecord.SekiroResponseEvent() {
@@ -84,9 +95,12 @@ public class NatClient {
             public void onSekiroResponse(SekiroNatMessage sekiroNatMessage) {
                 if (sekiroNatMessage == null) {
                     ReturnUtil.writeRes(channel, CommonRes.failed("timeout"));
+                    timeOutCount.incrementAndGet();
+                    checkDisconnectForTimeout();
                     return;
                 }
 
+                timeOutCount.set(0);
                 byte[] data = sekiroNatMessage.getData();
                 if (data == null) {
                     ReturnUtil.writeRes(channel, CommonRes.success(null));
@@ -118,14 +132,18 @@ public class NatClient {
         });
     }
 
+
     public void forward(String paramContent, Integer timeOut, HttpServletResponse httpServletResponse) {
         NettyInvokeRecord nettyInvokeRecord = forwardInternal(paramContent);
         nettyInvokeRecord.waitCallback(timeOut);
         SekiroNatMessage sekiroNatMessage = nettyInvokeRecord.finalResult();
         if (sekiroNatMessage == null) {
             ReturnUtil.writeRes(httpServletResponse, CommonRes.failed("timeout"));
+            timeOutCount.incrementAndGet();
+            checkDisconnectForTimeout();
             return;
         }
+        timeOutCount.set(0);
 
         byte[] data = sekiroNatMessage.getData();
         if (data == null) {

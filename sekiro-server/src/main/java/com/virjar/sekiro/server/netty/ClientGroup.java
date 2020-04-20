@@ -21,6 +21,18 @@ class ClientGroup {
 
     private LinkedList<String> poolQueue = new LinkedList<>();
 
+    synchronized String disconnect(String clientId) {
+        NatClient natClient = natClientMap.get(clientId);
+        natClientMap.remove(clientId);
+        removeQueue(clientId);
+        if (natClient == null) {
+            return "no client: " + clientId;
+        } else {
+            natClient.getCmdChannel().close();
+        }
+        return null;
+    }
+
     //对象操作全部加锁，防止并发紊乱
     synchronized List<NatClient> queue() {
         List<NatClient> ret = Lists.newArrayListWithCapacity(poolQueue.size());

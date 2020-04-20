@@ -51,6 +51,12 @@ public class SekiroServerController {
         return CommonRes.success(stringListMap);
     }
 
+    @GetMapping("/disconnectClient")
+    @ResponseBody
+    public CommonRes<?> disconnectClient(String group, String clientId) {
+        return CommonRes.success(ChannelRegistry.getInstance().forceDisconnect(group, clientId));
+    }
+
     @RequestMapping(value = "/invoke", method = {RequestMethod.GET, RequestMethod.POST})
     public void invoke(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
         String contentType = httpServletRequest.getContentType();
