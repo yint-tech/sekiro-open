@@ -71,7 +71,7 @@ class ClientGroup {
         while (true) {
             String poll = poolQueue.poll();
             if (poll == null) {
-                log.info("pool queue empty");
+                log.info("pool queue empty for group:{}", group);
                 return null;
             }
 
