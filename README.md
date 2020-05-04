@@ -351,6 +351,8 @@ Web环境基于WebSocket实现，使用方法也很简单:
 
 你可以运行我们提供的demo测试Sekiro的JS RPC能力 [js_rpc_sekiro_demo.html](jsclient/sekiro_demo.html)
 
+![sekiro_demo.gif](jsclient/sekiro_demo.gif)
+
 ## 相关分析文章
 
 [https://github.com/langgithub/sekiro-lang](https://github.com/langgithub/sekiro-lang)
