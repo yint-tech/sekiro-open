@@ -45,7 +45,7 @@ public class ChannelRegistry {
     }
 
 
-    public void registryClient(String client, Channel cmdChannel) {
+    public void registryClient(String client, Channel cmdChannel, NatClient.NatClientType natClientType) {
         log.info("register for client:{}", client);
 
         int index = client.indexOf("@");
@@ -55,8 +55,7 @@ public class ChannelRegistry {
         String[] clientAndGroup = client.split("@");
         String group = clientAndGroup[1];
         String clientId = clientAndGroup[0];
-        createOrGet(group).registryClient(clientId, cmdChannel);
-
+        createOrGet(group).registryClient(clientId, cmdChannel, natClientType);
     }
 
 

@@ -28,12 +28,18 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
 public class NatClient {
+
+    public enum NatClientType {
+        NORMAL,
+        WS
+    }
 
     @Getter
     private String group;
@@ -43,13 +49,16 @@ public class NatClient {
     @Getter
     private Channel cmdChannel;
 
+    private NatClientType natClientType;
+
     private AtomicInteger timeOutCount = new AtomicInteger(0);
 
-    private AtomicLong invokeSeqGenerator = new AtomicLong(0L);
+    private AtomicLong invokeSeqGenerator = new AtomicLong(1L);
 
-    public NatClient(String clientId, String group, Channel cmdChannel) {
+    public NatClient(String clientId, String group, Channel cmdChannel, NatClientType natClientType) {
         this.clientId = clientId;
         this.group = group;
+        this.natClientType = natClientType;
         attachChannel(cmdChannel);
     }
 
@@ -70,13 +79,20 @@ public class NatClient {
         long invokeTaskId = invokeSeqGenerator.incrementAndGet();
         NettyInvokeRecord nettyInvokeRecord = new NettyInvokeRecord(clientId, group, invokeTaskId, paramContent);
 
-        SekiroNatMessage proxyMessage = new SekiroNatMessage();
-        proxyMessage.setType(SekiroNatMessage.TYPE_INVOKE);
-        proxyMessage.setSerialNumber(invokeTaskId);
-        proxyMessage.setData(paramContent.getBytes(Charsets.UTF_8));
         TaskRegistry.getInstance().registerTask(nettyInvokeRecord);
 
-        cmdChannel.writeAndFlush(proxyMessage);
+        if (natClientType == NatClientType.NORMAL) {
+            SekiroNatMessage proxyMessage = new SekiroNatMessage();
+            proxyMessage.setType(SekiroNatMessage.TYPE_INVOKE);
+            proxyMessage.setSerialNumber(invokeTaskId);
+            proxyMessage.setData(paramContent.getBytes(Charsets.UTF_8));
+            cmdChannel.writeAndFlush(proxyMessage);
+        } else {
+            JSONObject jsonObject = JSONObject.parseObject(paramContent);
+            jsonObject.put("__sekiro_seq__", invokeTaskId);
+            TextWebSocketFrame textWebSocketFrame = new TextWebSocketFrame(jsonObject.toJSONString());
+            cmdChannel.writeAndFlush(textWebSocketFrame);
+        }
 
         return nettyInvokeRecord;
     }

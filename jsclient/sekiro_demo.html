@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset = utf-8"/>
+    <title>Sekiro Web测试</title>
+    <script type="text/javascript" src="http://file.virjar.com/sekiro_web_client.js?_=123"></script>
+    <script type="text/javascript">
+
+        function guid() {
+            function S4() {
+                  return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+            }
+            return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+        }
+
+        var client = new SekiroClient("ws://sekiro.virjar.com:5603/websocket?group=ws-group&clientId="+guid());
+
+        client.registerAction("clientTime",function(request, resolve,reject ){
+            resolve(""+new Date());
+        })
+
+
+    </script>
+
+
+</head>
+<body>
+
+<p>
+    使用方法：将js文件 http://file.virjar.com/sekiro_web_client.js 注入到浏览器环境
+</p>
+<p>
+    然后通过SekiroClient和Sekiro服务器通信，即可直接RPC调用浏览器内部方法
+</p>
+
+<pre>
+     <script type="text/javascript"
+             src="http://file.virjar.com/sekiro_web_client.js?_=123"></script>
+     <script type="text/javascript">
+
+        function guid() {
+            function S4() {
+                  return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+            }
+            return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+        }
+
+        var client = new SekiroClient("ws://sekiro.virjar.com:5603/websocket?group=ws-group&clientId="+guid());
+
+        client.registerAction("clientTime",function(request, resolve,reject ){
+            resolve(""+new Date());
+        })
+     </script>
+</pre>
+
+<p>
+    请注意，Sekiro JS RPC是Sekiro的扩展，依然需要遵循Sekiro的各种规则定义。
+</p>
+
+</body>
+</html>

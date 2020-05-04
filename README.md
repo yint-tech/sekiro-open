@@ -332,6 +332,25 @@ virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
 
 协议参见Sekiro二进制协议文档: [protoal.md](protocal.md)
 
+### web注入
+
+Sekiro已支持websocket协议，使用本功能可以支持注入js到浏览器后，调用浏览器环境的js代码。
+Web环境基于WebSocket实现，使用方法也很简单:
+
+```
+ <script type="text/javascript" src="http://file.virjar.com/sekiro_web_client.js?_=123"></script>
+    <script type="text/javascript">
+
+        var client = new SekiroClient("ws://sekiro.virjar.com:5603/websocket?group=ws-group&clientId=testClient");
+        client.registerAction("clientTime",function(request, resolve,reject ){
+            resolve(""+new Date());
+        })
+
+    </script>
+```
+
+你可以运行我们提供的demo测试Sekiro的JS RPC能力 [js_rpc_sekiro_demo.html](jsclient/sekiro_demo.html)
+
 ## 相关分析文章
 
 [https://github.com/langgithub/sekiro-lang](https://github.com/langgithub/sekiro-lang)
