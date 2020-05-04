@@ -33,11 +33,7 @@
 </p>
 
 <pre>
-     <script type="text/javascript"
-             src="http://file.virjar.com/sekiro_web_client.js?_=123"></script>
-     <script type="text/javascript">
-
-        function guid() {
+    function guid() {
             function S4() {
                   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
             }
@@ -49,7 +45,6 @@
         client.registerAction("clientTime",function(request, resolve,reject ){
             resolve(""+new Date());
         })
-     </script>
 </pre>
 
 <p>
