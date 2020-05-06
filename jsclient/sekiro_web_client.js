@@ -35,19 +35,30 @@ function SekiroClient (wsURL) {
 }
 
 SekiroClient.prototype.connect = function () {
-  console.log('begin of connect to wsURL: ' + this.wsURL)
-  this.socket = new this.WebSocket(this.wsURL);
+  console.log('sekiro: begin of connect to wsURL: ' + this.wsURL)
   var _this = this;
+  if(this.socket && this.socket.readyState ==1){
+    this.socket.close();
+  }
+  try{
+    this.socket = new this.WebSocket(this.wsURL);
+  }catch(e){
+    console.log("sekiro: create connection failed,reconnect after 20s");
+    setTimeout(function () {
+        _this.connect()
+    }, 2000)
+  }
+
   this.socket.onmessage = function (event) {
     _this.handleSekiroRequest(event.data)
   }
 
   this.socket.onopen = function (event) {
-    console.log('open a sekiro client connection')
+    console.log('sekiro: open a sekiro client connection')
   }
 
   this.socket.onclose = function (event) {
-    console.log('connection disconnected ,reconnection after 20s')
+    console.log('sekiro: disconnected ,reconnection after 20s')
     setTimeout(function () {
       _this.connect()
     }, 2000)
@@ -116,7 +127,7 @@ SekiroClient.prototype.sendFailed = function (seq,errorMessage) {
   responseJson['status'] = -1;
   responseJson['__sekiro_seq__'] = seq;
   var responseText = JSON.stringify(responseJson);
-  console.log("response :"+ responseText);
+  console.log("sekiro: response :"+ responseText);
   this.socket.send(responseText)
 }
 
