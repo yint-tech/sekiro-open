@@ -75,7 +75,7 @@ public class NatClient {
     }
 
     private NettyInvokeRecord forwardInternal(String paramContent) {
-        log.info("request body: {}   clientId:{}", paramContent, clientId);
+        log.info("request body: {}   clientId:{} forward channel:{}", paramContent, clientId, cmdChannel);
         long invokeTaskId = invokeSeqGenerator.incrementAndGet();
         NettyInvokeRecord nettyInvokeRecord = new NettyInvokeRecord(clientId, group, invokeTaskId, paramContent);
 
@@ -99,7 +99,7 @@ public class NatClient {
 
     private void checkDisconnectForTimeout() {
         if (timeOutCount.get() > 5) {
-            log.warn("连续5次调用超时，主动关闭连接...");
+            log.warn("连续5次调用超时，主动关闭连接...: {}", cmdChannel);
             cmdChannel.close();
         }
     }
@@ -130,7 +130,7 @@ public class NatClient {
 
                 if (StringUtils.containsIgnoreCase(responseContentType, "application/json")) {
                     String responseJson = new String(sekiroNatMessage.getData(), StandardCharsets.UTF_8);
-                    log.info("receive json response:{}", responseJson);
+                    log.info("receive json response:{} from channel:{} ", responseJson, channel);
                     try {
                         JSONObject jsonObject = JSONObject.parseObject(responseJson);
                         ReturnUtil.writeRes(channel, ReturnUtil.from(jsonObject, clientId));

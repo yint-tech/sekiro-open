@@ -45,14 +45,24 @@ public class SekiroNatMessageDecoder extends ByteToMessageDecoder {
                 in.readBytes(uriBytes);
                 sekiroNatMessage.setExtra(new String(uriBytes));
 
-                byte[] data = new byte[frameLength - TYPE_SIZE - SERIAL_NUMBER_SIZE - URI_LENGTH_SIZE - uriLength];
-                in.readBytes(data);
-                sekiroNatMessage.setData(data);
+                int dataLength = frameLength - TYPE_SIZE - SERIAL_NUMBER_SIZE - URI_LENGTH_SIZE - uriLength;
+                if (dataLength < 0) {
+                    SekiroLogger.error("message protocol error,negative data length:" + dataLength + " for channel: " + ctx.channel()
+                            + " frameLength: " + frameLength + " type:" + type + " serial_number:" + sn + " uriLength:" + uriLength + " extra:" + sekiroNatMessage.getExtra()
+                    );
+                    ctx.channel().close();
+                    return;
+                }
+                if (dataLength > 0) {
+                    byte[] data = new byte[dataLength];
+                    in.readBytes(data);
+                    sekiroNatMessage.setData(data);
+                }
 
                 out.add(sekiroNatMessage);
                 // in.release();
             } catch (Exception e) {
-                SekiroLogger.error("message decode failed", e);
+                SekiroLogger.error("message decode failed for channel: " + ctx.channel(), e);
                 //协议都紊乱了，不知道啥原因。所以直接close
                 ctx.channel().close();
             }
