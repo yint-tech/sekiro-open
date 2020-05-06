@@ -74,7 +74,7 @@ public class NatServerChannelHandler extends SimpleChannelInboundHandler<SekiroN
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("error", cause);
+        log.error("error with channel:" + ctx.channel(), cause);
         super.exceptionCaught(ctx, cause);
     }
 
