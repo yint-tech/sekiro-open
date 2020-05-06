@@ -12,11 +12,12 @@
             return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
         }
 
-        var client = new SekiroClient("ws://sekiro.virjar.com:5603/websocket?group=ws-group&clientId="+guid());
+        var client = new SekiroClient("wss://sekiro.virjar.com/websocket?group=ws-group&clientId="+guid());
 
         client.registerAction("clientTime",function(request, resolve,reject ){
             resolve(""+new Date());
         })
+
 
 
     </script>
@@ -40,7 +41,7 @@
             return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
         }
 
-        var client = new SekiroClient("ws://sekiro.virjar.com:5603/websocket?group=ws-group&clientId="+guid());
+        var client = new SekiroClient("wss://sekiro.virjar.com/websocket?group=ws-group&clientId="+guid());
 
         client.registerAction("clientTime",function(request, resolve,reject ){
             resolve(""+new Date());

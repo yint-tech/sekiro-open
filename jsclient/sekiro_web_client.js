@@ -133,11 +133,12 @@ SekiroClient.prototype.sendFailed = function (seq,errorMessage) {
 
 SekiroClient.prototype.registerAction = function(action,handler){
   if(typeof action !=='string'){
-      throw new Error("a action must be string");
+      throw new Error("an action must be string");
   }
   if(typeof handler !=='function'){
-    throw new Error("a action must be function");
-}
+    throw new Error("a handler must be function");
+  }
+  console.log("sekiro: register action: "+ action);
   this.handlers[action] = handler;
   return this;
 }

@@ -341,7 +341,7 @@ Web环境基于WebSocket实现，使用方法也很简单:
  <script type="text/javascript" src="http://file.virjar.com/sekiro_web_client.js?_=123"></script>
     <script type="text/javascript">
 
-        var client = new SekiroClient("ws://sekiro.virjar.com:5603/websocket?group=ws-group&clientId=testClient");
+        var client = new SekiroClient("wss://sekiro.virjar.com/websocket?group=ws-group&clientId=testClient");
         client.registerAction("clientTime",function(request, resolve,reject ){
             resolve(""+new Date());
         })
@@ -352,6 +352,11 @@ Web环境基于WebSocket实现，使用方法也很简单:
 你可以运行我们提供的demo测试Sekiro的JS RPC能力 [js_rpc_sekiro_demo.html](jsclient/sekiro_demo.html)
 
 ![sekiro_demo.gif](jsclient/sekiro_demo.gif)
+
+
+### ssl问题
+如果你要注入的网页是https的，那么直接通过我们的websocket服务会被浏览器拦截。那么你需要使得你的服务器支持ssl WebSocket，Sekiro的demo网站已经完成了相关配置。
+此时你应该使用 ``wss:``协议替代:``ws:``,如：``wss://sekiro.virjar.com/websocket?group=ws-group&clientId=testClient``
 
 ## 相关分析文章
 
