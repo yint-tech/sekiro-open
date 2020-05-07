@@ -22,125 +22,157 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-function SekiroClient (wsURL) {
-  this.wsURL = wsURL
-  this.handlers = {}
-  this.socket = {}
-  // check
-  if (!wsURL) {
-    throw new Error('wsURL can not be empty!!')
-  }
-  this.WebSocket = window.WebSocket ? window.WebSocket : window.MozWebSocket
-  this.connect()
+function SekiroClient(wsURL) {
+    this.wsURL = wsURL;
+    this.handlers = {};
+    this.socket = {};
+    // check
+    if (!wsURL) {
+        throw new Error('wsURL can not be empty!!')
+    }
+    this.webSocketFactory = this.resolveWebSocketFactory();
+    this.connect()
 }
+
+SekiroClient.prototype.resolveWebSocketFactory = function () {
+    if (typeof window === 'object') {
+        var theWebSocket = window.WebSocket ? window.WebSocket : window.MozWebSocket;
+        return function (wsURL) {
+            return new theWebSocket(wsURL);
+        }
+    }
+    if (typeof weex === 'object') {
+        // this is weex env : https://weex.apache.org/zh/docs/modules/websockets.html
+        try {
+            console.log("test webSocket for weex");
+            var ws = weex.requireModule('webSocket');
+            console.log("find webSocket for weex:" + ws);
+            return function (wsURL) {
+                try {
+                    ws.close();
+                } catch (e) {
+                }
+                ws.WebSocket(wsURL, '');
+                return ws;
+            }
+        } catch (e) {
+            console.log(e);
+            //ignore
+        }
+    }
+    //TODO support ReactNative
+    if (typeof WebSocket === 'object') {
+        return function (wsURL) {
+            return new theWebSocket(wsURL);
+        }
+    }
+    throw new Error("the js environment do not support websocket");
+};
 
 SekiroClient.prototype.connect = function () {
-  console.log('sekiro: begin of connect to wsURL: ' + this.wsURL)
-  var _this = this;
-  if(this.socket && this.socket.readyState ==1){
-    this.socket.close();
-  }
-  try{
-    this.socket = new this.WebSocket(this.wsURL);
-  }catch(e){
-    console.log("sekiro: create connection failed,reconnect after 20s");
-    setTimeout(function () {
-        _this.connect()
-    }, 2000)
-  }
+    console.log('sekiro: begin of connect to wsURL: ' + this.wsURL);
+    var _this = this;
+    if (this.socket && this.socket.readyState === 1) {
+        this.socket.close();
+    }
+    try {
+        this.socket = this.webSocketFactory(this.wsURL);
+    } catch (e) {
+        console.log("sekiro: create connection failed,reconnect after 20s");
+        setTimeout(function () {
+            _this.connect()
+        }, 2000)
+    }
 
-  this.socket.onmessage = function (event) {
-    _this.handleSekiroRequest(event.data)
-  }
+    this.socket.onmessage = function (event) {
+        _this.handleSekiroRequest(event.data)
+    };
 
-  this.socket.onopen = function (event) {
-    console.log('sekiro: open a sekiro client connection')
-  }
+    this.socket.onopen = function (event) {
+        console.log('sekiro: open a sekiro client connection')
+    };
 
-  this.socket.onclose = function (event) {
-    console.log('sekiro: disconnected ,reconnection after 20s')
-    setTimeout(function () {
-      _this.connect()
-    }, 2000)
-  }
-}
+    this.socket.onclose = function (event) {
+        console.log('sekiro: disconnected ,reconnection after 20s');
+        setTimeout(function () {
+            _this.connect()
+        }, 2000)
+    }
+};
 
 SekiroClient.prototype.handleSekiroRequest = function (requestJson) {
-  var request = JSON.parse(requestJson)
-  var seq  = request['__sekiro_seq__'];
+    var request = JSON.parse(requestJson);
+    var seq = request['__sekiro_seq__'];
 
-  if (!request['action']) {
-    this.sendFailed(seq,'need request param {action}')
-    return
-  }
-  var action = request['action']
-  if (!this.handlers[action]) {
-    this.sendFailed(seq,'no action handler: ' + action + ' defined')
-    return
-  }
-  
-  var theHandler = this.handlers[action]
-  var _this = this
-  theHandler(request, function (response) {
-    _this.sendSuccess(seq,response)
-  }, function (errorMessage) {
-    _this.sendFailed(seq,errorMessage)
-  })
-}
-
-SekiroClient.prototype.sendSuccess = function (seq,response) {
-  var responseJson ;
-  if(typeof response == 'string'){
-    try{
-      responseJson = JSON.parse(response);
-    }catch(e){
-      responseJson = {};
-      responseJson['data'] = response;
+    if (!request['action']) {
+        this.sendFailed(seq, 'need request param {action}');
+        return
     }
-  }
-  else if(typeof response=='object'){
-    responseJson = response;
-  }else{
-    responseJson = {};
-    responseJson['data'] = response;
-  }
-  
-  if(responseJson['code']){
-    responseJson['code'] =0;
-  }else if(responseJson['status']){
-    responseJson['status'] =0;
-  }else{
-    responseJson['status'] =0;
-  }
-  responseJson['__sekiro_seq__'] = seq;
-  var responseText = JSON.stringify(responseJson);
-  console.log("response :"+ responseText);
-  this.socket.send(responseText)
-}
+    var action = request['action'];
+    if (!this.handlers[action]) {
+        this.sendFailed(seq, 'no action handler: ' + action + ' defined');
+        return
+    }
 
-SekiroClient.prototype.sendFailed = function (seq,errorMessage) {
-  if(typeof errorMessage !='string'){
-    errorMessage = JSON.stringify(errorMessage);
-  }
-  var responseJson = {};
-  responseJson['message'] = errorMessage;
-  responseJson['status'] = -1;
-  responseJson['__sekiro_seq__'] = seq;
-  var responseText = JSON.stringify(responseJson);
-  console.log("sekiro: response :"+ responseText);
-  this.socket.send(responseText)
-}
+    var theHandler = this.handlers[action];
+    var _this = this;
+    theHandler(request, function (response) {
+        _this.sendSuccess(seq, response)
+    }, function (errorMessage) {
+        _this.sendFailed(seq, errorMessage)
+    })
+};
 
-SekiroClient.prototype.registerAction = function(action,handler){
-  if(typeof action !=='string'){
-      throw new Error("an action must be string");
-  }
-  if(typeof handler !=='function'){
-    throw new Error("a handler must be function");
-  }
-  console.log("sekiro: register action: "+ action);
-  this.handlers[action] = handler;
-  return this;
-}
+SekiroClient.prototype.sendSuccess = function (seq, response) {
+    var responseJson;
+    if (typeof response == 'string') {
+        try {
+            responseJson = JSON.parse(response);
+        } catch (e) {
+            responseJson = {};
+            responseJson['data'] = response;
+        }
+    } else if (typeof response == 'object') {
+        responseJson = response;
+    } else {
+        responseJson = {};
+        responseJson['data'] = response;
+    }
 
-//window.SekiroClient = SekiroClient();
+    if (responseJson['code']) {
+        responseJson['code'] = 0;
+    } else if (responseJson['status']) {
+        responseJson['status'] = 0;
+    } else {
+        responseJson['status'] = 0;
+    }
+    responseJson['__sekiro_seq__'] = seq;
+    var responseText = JSON.stringify(responseJson);
+    console.log("response :" + responseText);
+    this.socket.send(responseText)
+};
+
+SekiroClient.prototype.sendFailed = function (seq, errorMessage) {
+    if (typeof errorMessage != 'string') {
+        errorMessage = JSON.stringify(errorMessage);
+    }
+    var responseJson = {};
+    responseJson['message'] = errorMessage;
+    responseJson['status'] = -1;
+    responseJson['__sekiro_seq__'] = seq;
+    var responseText = JSON.stringify(responseJson);
+    console.log("sekiro: response :" + responseText);
+    this.socket.send(responseText)
+};
+
+SekiroClient.prototype.registerAction = function (action, handler) {
+    if (typeof action !== 'string') {
+        throw new Error("an action must be string");
+    }
+    if (typeof handler !== 'function') {
+        throw new Error("a handler must be function");
+    }
+    console.log("sekiro: register action: " + action);
+    this.handlers[action] = handler;
+    return this;
+};
