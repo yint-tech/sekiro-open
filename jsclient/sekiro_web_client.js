@@ -98,9 +98,10 @@ SekiroClient.prototype.resolveWebSocketFactory = function () {
 SekiroClient.prototype.connect = function () {
     console.log('sekiro: begin of connect to wsURL: ' + this.wsURL);
     var _this = this;
-    if (this.socket && this.socket.readyState === 1) {
-        this.socket.close();
-    }
+    // 不check close，让
+    // if (this.socket && this.socket.readyState === 1) {
+    //     this.socket.close();
+    // }
     try {
         this.socket = this.webSocketFactory(this.wsURL);
     } catch (e) {
@@ -143,11 +144,20 @@ SekiroClient.prototype.handleSekiroRequest = function (requestJson) {
 
     var theHandler = this.handlers[action];
     var _this = this;
-    theHandler(request, function (response) {
-        _this.sendSuccess(seq, response)
-    }, function (errorMessage) {
-        _this.sendFailed(seq, errorMessage)
-    })
+    try {
+        theHandler(request, function (response) {
+            try {
+                _this.sendSuccess(seq, response)
+            } catch (e) {
+                _this.sendFailed(seq, "e:" + e);
+            }
+        }, function (errorMessage) {
+            _this.sendFailed(seq, errorMessage)
+        })
+    } catch (e) {
+        console.log("error: " + e);
+        _this.sendFailed(seq, ":" + e);
+    }
 };
 
 SekiroClient.prototype.sendSuccess = function (seq, response) {
