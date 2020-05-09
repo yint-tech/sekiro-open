@@ -22,6 +22,7 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+
 function SekiroClient(wsURL) {
     this.wsURL = wsURL;
     this.handlers = {};
@@ -38,7 +39,31 @@ SekiroClient.prototype.resolveWebSocketFactory = function () {
     if (typeof window === 'object') {
         var theWebSocket = window.WebSocket ? window.WebSocket : window.MozWebSocket;
         return function (wsURL) {
-            return new theWebSocket(wsURL);
+
+            function WindowWebSocketWrapper(wsURL) {
+                this.mSocket = new theWebSocket(wsURL);
+            }
+
+            WindowWebSocketWrapper.prototype.close = function () {
+                this.mSocket.close();
+            };
+
+            WindowWebSocketWrapper.prototype.onmessage = function (onMessageFunction) {
+                this.mSocket.onmessage = onMessageFunction;
+            };
+
+            WindowWebSocketWrapper.prototype.onopen = function (onOpenFunction) {
+                this.mSocket.onopen = onOpenFunction;
+            };
+            WindowWebSocketWrapper.prototype.onclose = function (onCloseFunction) {
+                this.mSocket.onclose = onCloseFunction;
+            };
+
+            WindowWebSocketWrapper.prototype.send = function (message) {
+                this.mSocket.send(message);
+            };
+
+            return new WindowWebSocketWrapper(wsURL);
         }
     }
     if (typeof weex === 'object') {
@@ -66,6 +91,7 @@ SekiroClient.prototype.resolveWebSocketFactory = function () {
             return new theWebSocket(wsURL);
         }
     }
+    // weex 和 PC环境的websocket API不完全一致，所以做了抽象兼容
     throw new Error("the js environment do not support websocket");
 };
 
@@ -84,20 +110,20 @@ SekiroClient.prototype.connect = function () {
         }, 2000)
     }
 
-    this.socket.onmessage = function (event) {
+    this.socket.onmessage(function (event) {
         _this.handleSekiroRequest(event.data)
-    };
+    });
 
-    this.socket.onopen = function (event) {
+    this.socket.onopen(function (event) {
         console.log('sekiro: open a sekiro client connection')
-    };
+    });
 
-    this.socket.onclose = function (event) {
+    this.socket.onclose(function (event) {
         console.log('sekiro: disconnected ,reconnection after 20s');
         setTimeout(function () {
             _this.connect()
         }, 2000)
-    }
+    });
 };
 
 SekiroClient.prototype.handleSekiroRequest = function (requestJson) {
