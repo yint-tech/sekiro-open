@@ -127,6 +127,7 @@ SekiroClient.prototype.connect = function () {
 };
 
 SekiroClient.prototype.handleSekiroRequest = function (requestJson) {
+    console.log("receive sekiro request: " + requestJson);
     var request = JSON.parse(requestJson);
     var seq = request['__sekiro_seq__'];
 
@@ -163,6 +164,14 @@ SekiroClient.prototype.sendSuccess = function (seq, response) {
     } else {
         responseJson = {};
         responseJson['data'] = response;
+    }
+
+
+    if (Array.isArray(responseJson)) {
+        responseJson = {
+            data: responseJson,
+            code: 0
+        }
     }
 
     if (responseJson['code']) {
