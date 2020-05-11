@@ -4,10 +4,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Map;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TaskRegistry {
@@ -30,8 +30,12 @@ public class TaskRegistry {
         doingTask.put(genTaskItemKey(nettyInvokeRecord.getClientId(), nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId()), nettyInvokeRecord);
     }
 
-    public void forwardClientResponse(String clientId,String group, Long taskId, SekiroNatMessage sekiroNatMessage) {
-        NettyInvokeRecord nettyInvokeRecord = doingTask.remove(genTaskItemKey(clientId,group, taskId));
+    public boolean hasTaskAttached(String clientId, String group, Long taskId) {
+        return doingTask.containsKey(genTaskItemKey(clientId, group, taskId));
+    }
+
+    public void forwardClientResponse(String clientId, String group, Long taskId, SekiroNatMessage sekiroNatMessage) {
+        NettyInvokeRecord nettyInvokeRecord = doingTask.remove(genTaskItemKey(clientId, group, taskId));
         if (nettyInvokeRecord == null) {
             log.error("can not find invoke record for client: {}  taskId:{}", clientId, taskId);
             return;

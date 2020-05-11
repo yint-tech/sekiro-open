@@ -194,7 +194,28 @@ SekiroClient.prototype.sendSuccess = function (seq, response) {
     responseJson['__sekiro_seq__'] = seq;
     var responseText = JSON.stringify(responseJson);
     console.log("response :" + responseText);
-    this.socket.send(responseText)
+
+
+    if (responseText.length < 1024 * 15) {
+        this.socket.send(responseText);
+        return;
+    }
+
+    //大报文要分段传输
+    var segmentSize = 1024 * 14;
+    var i = 0, totalFrameIndex = (responseText.length / segmentSize) + 1;
+
+    for (; i < totalFrameIndex; i++) {
+        this.socket.send(JSON.stringify({
+                __sekiro_frame_total: totalFrameIndex,
+                __sekiro_index: i,
+                __sekiro_seq__: seq,
+                __sekiro_is_frame: true,
+                __sekiro_content: responseText.substring(i * segmentSize, (i + 1) * segmentSize)
+            }
+        ));
+    }
+
 };
 
 SekiroClient.prototype.sendFailed = function (seq, errorMessage) {

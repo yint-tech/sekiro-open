@@ -108,13 +108,16 @@ public class SekiroWebSocketHandler extends SimpleChannelInboundHandler<Object> 
             return;
         }
 
-        SekiroNatMessage sekiroNatMessage = new SekiroNatMessage();
-        sekiroNatMessage.setType(SekiroNatMessage.TYPE_INVOKE);
-        sekiroNatMessage.setSerialNumber(serialNumber);
-        sekiroNatMessage.setExtra("application/json;charset=utf-8");
-        sekiroNatMessage.setData(jsonObject.toJSONString().getBytes(StandardCharsets.UTF_8));
-
-        TaskRegistry.getInstance().forwardClientResponse(clientId, group, serialNumber, sekiroNatMessage);
+        if (!jsonObject.getBooleanValue("__sekiro_is_frame")) {
+            SekiroNatMessage sekiroNatMessage = new SekiroNatMessage();
+            sekiroNatMessage.setType(SekiroNatMessage.TYPE_INVOKE);
+            sekiroNatMessage.setSerialNumber(serialNumber);
+            sekiroNatMessage.setExtra("application/json;charset=utf-8");
+            sekiroNatMessage.setData(jsonObject.toJSONString().getBytes(StandardCharsets.UTF_8));
+            TaskRegistry.getInstance().forwardClientResponse(clientId, group, serialNumber, sekiroNatMessage);
+        } else {
+            WebSocketMessageAggregator.onWebSocketFrame(clientId, group, serialNumber, jsonObject);
+        }
 
     }
 
