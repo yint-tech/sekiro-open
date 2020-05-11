@@ -202,18 +202,20 @@ SekiroClient.prototype.sendSuccess = function (seq, response) {
     }
 
     //大报文要分段传输
-    var segmentSize = 1024 * 14;
-    var i = 0, totalFrameIndex = (responseText.length / segmentSize) + 1;
+    var segmentSize = 1024 ;
+    var i = 0, totalFrameIndex = Math.floor(responseText.length / segmentSize) + 1;
 
     for (; i < totalFrameIndex; i++) {
-        this.socket.send(JSON.stringify({
+        var frameData = JSON.stringify({
                 __sekiro_frame_total: totalFrameIndex,
                 __sekiro_index: i,
                 __sekiro_seq__: seq,
                 __sekiro_is_frame: true,
                 __sekiro_content: responseText.substring(i * segmentSize, (i + 1) * segmentSize)
             }
-        ));
+        );
+        console.log("frame: " + frameData);
+        this.socket.send(frameData);
     }
 
 };
