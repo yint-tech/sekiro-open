@@ -85,6 +85,8 @@ public class SekiroWebSocketHandler extends SimpleChannelInboundHandler<Object> 
             jsonObject = JSONObject.parseObject(request);
         } catch (Exception e) {
             log.error("the ws client response none json format data", e);
+            // js的json好像和fastjson不一样
+            log.warn("error response data: " + request);
             ctx.channel().close();
             return;
         }
