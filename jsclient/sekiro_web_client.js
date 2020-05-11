@@ -120,10 +120,10 @@ SekiroClient.prototype.connect = function () {
     });
 
     this.socket.onclose(function (event) {
-        console.log('sekiro: disconnected ,reconnection after 20s');
+        console.log('sekiro: disconnected ,reconnection after 2s');
         setTimeout(function () {
             _this.connect()
-        }, 2000)
+        }, 200)
     });
 };
 
