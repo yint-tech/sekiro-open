@@ -146,7 +146,7 @@ public class SekiroWebSocketHandler extends SimpleChannelInboundHandler<Object> 
 
         //最大4M报文
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                "ws://" + req.headers().get(HttpHeaders.Names.HOST) + "/websocket", null, false, 65536 * 1024 * 4);
+                "ws://" + req.headers().get(HttpHeaders.Names.HOST) + "/websocket", null, false, 1 << 25);
         handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null) {
             WebSocketServerHandshakerFactory

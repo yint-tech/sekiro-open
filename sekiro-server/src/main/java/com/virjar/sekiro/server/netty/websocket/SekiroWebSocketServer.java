@@ -49,7 +49,7 @@ public class SekiroWebSocketServer implements InitializingBean {
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline().addLast(new HttpServerCodec());
                         //socketChannel.pipeline().addLast(new HttpResponseEncoder());
-                        socketChannel.pipeline().addLast(new HttpObjectAggregator(65536));
+                        socketChannel.pipeline().addLast(new HttpObjectAggregator(1 << 25));
                         socketChannel.pipeline().addLast(new ChunkedWriteHandler());
                         socketChannel.pipeline().addLast(new SekiroWebSocketHandler());
                     }
