@@ -95,7 +95,7 @@ class ClientGroup {
 
 
     synchronized void registryClient(String client, Channel cmdChannel, NatClient.NatClientType natClientType) {
-//        NatClient natClient = natClientMap.get(client);
+        NatClient oldNatClient = natClientMap.get(client);
 //        if (natClient != null) {
 //            Channel cmdChannelOld = natClient.getCmdChannel();
 //            if (cmdChannelOld != cmdChannel) {
@@ -106,6 +106,9 @@ class ClientGroup {
 //        }
         log.info("register a client :{} with channel:{} ", client, cmdChannel);
         NatClient natClient = new NatClient(client, group, cmdChannel, natClientType);
+        if ((oldNatClient != null)) {
+            natClient.migrateSeqGenerator(oldNatClient);
+        }
         natClientMap.put(client, natClient);
         removeQueue(client);
         poolQueue.add(client);

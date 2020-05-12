@@ -55,6 +55,17 @@ public class NatClient {
 
     private AtomicLong invokeSeqGenerator = new AtomicLong(1L);
 
+    void migrateSeqGenerator(NatClient oldNatClient) {
+        long oldId = oldNatClient.invokeSeqGenerator.get();
+        if (oldId <= 0) {
+            return;
+        }
+        long now = invokeSeqGenerator.addAndGet(oldId);
+        if (now > Integer.MAX_VALUE * 2L) {
+            invokeSeqGenerator.set(1L);
+        }
+    }
+
     public NatClient(String clientId, String group, Channel cmdChannel, NatClientType natClientType) {
         this.clientId = clientId;
         this.group = group;
