@@ -105,7 +105,7 @@ SekiroClient.prototype.connect = function () {
     try {
         this.socket = this.webSocketFactory(this.wsURL);
     } catch (e) {
-        console.log("sekiro: create connection failed,reconnect after 20s");
+        console.log("sekiro: create connection failed,reconnect after 2s");
         setTimeout(function () {
             _this.connect()
         }, 2000)
@@ -123,7 +123,7 @@ SekiroClient.prototype.connect = function () {
         console.log('sekiro: disconnected ,reconnection after 2s');
         setTimeout(function () {
             _this.connect()
-        }, 200)
+        }, 2000)
     });
 };
 
@@ -196,13 +196,13 @@ SekiroClient.prototype.sendSuccess = function (seq, response) {
     console.log("response :" + responseText);
 
 
-    if (responseText.length < 1024 * 15) {
+    if (responseText.length < 1024 * 6) {
         this.socket.send(responseText);
         return;
     }
 
     //大报文要分段传输
-    var segmentSize = 1024 ;
+    var segmentSize = 1024 * 5;
     var i = 0, totalFrameIndex = Math.floor(responseText.length / segmentSize) + 1;
 
     for (; i < totalFrameIndex; i++) {
