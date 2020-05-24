@@ -29,6 +29,9 @@ public class NatServerChannelHandler extends SimpleChannelInboundHandler<SekiroN
             case SekiroNatMessage.TYPE_INVOKE:
                 handleInvokeResponseMessage(channelHandlerContext, proxyMessage);
                 break;
+            default:
+                log.info("协议紊乱。。。关闭连接");
+                channelHandlerContext.channel().close();
         }
     }
 
