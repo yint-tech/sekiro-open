@@ -382,5 +382,5 @@ Sekiro高阶培训和部分抓取技术课程可在此连接购买 [猿人学·�
 
 #### 捐赠
 如果你觉得作者辛苦了，可以的话请我喝杯咖啡
-![alipay](img/reward.jpg)
+![alipay](deploy/reward.jpg)
 
