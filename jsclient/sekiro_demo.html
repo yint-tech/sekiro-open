@@ -13,10 +13,10 @@
             return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
         }
 
-        var client = new SekiroClient("wss://sekiro.virjar.com/websocket?group=ws-group-1&clientId=" + guid());
+        var client = new SekiroClient("wss://sekiro.virjar.com/websocket?group=ws-group-2&clientId=" + guid());
 
         client.registerAction("clientTime", function (request, resolve, reject) {
-            resolve("" + new Date());
+            resolve("猿人学：" + new Date());
         });
 
         client.registerAction("executeJs", function (request, resolve, reject) {

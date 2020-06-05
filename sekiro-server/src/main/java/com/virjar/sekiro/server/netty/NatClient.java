@@ -24,6 +24,7 @@ import external.com.alibaba.fastjson.JSONException;
 import external.com.alibaba.fastjson.JSONObject;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -109,10 +110,34 @@ public class NatClient {
     }
 
     private void checkDisconnectForTimeout() {
-        if (timeOutCount.get() > 5) {
-            log.warn("连续5次调用超时，主动关闭连接...: {}", cmdChannel);
-            cmdChannel.close();
+        if (timeOutCount.get() > 4) {
+            log.warn("连续4次调用超时，主动关闭连接...: {}", cmdChannel);
+            sendSekiroSystemMessage("__sekiro_system_timeout", "timeout")
+                    .addListener(ChannelFutureListener.CLOSE);
+
         }
+    }
+
+    @SuppressWarnings("all")
+    private ChannelFuture sendSekiroSystemMessage(String action, String message) {
+        JSONObject systemMessage = new JSONObject();
+        systemMessage.put("action", "__sekiro_system_timeout");
+        systemMessage.put("message", message);
+        String paramContent = systemMessage.toJSONString();
+        long invokeTaskId = invokeSeqGenerator.incrementAndGet();
+        if (natClientType == NatClientType.NORMAL) {
+            SekiroNatMessage proxyMessage = new SekiroNatMessage();
+            proxyMessage.setType(SekiroNatMessage.TYPE_INVOKE);
+            proxyMessage.setSerialNumber(invokeTaskId);
+            proxyMessage.setData(paramContent.getBytes(Charsets.UTF_8));
+            return cmdChannel.writeAndFlush(proxyMessage);
+        } else {
+            JSONObject jsonObject = JSONObject.parseObject(paramContent);
+            jsonObject.put("__sekiro_seq__", invokeTaskId);
+            TextWebSocketFrame textWebSocketFrame = new TextWebSocketFrame(jsonObject.toJSONString());
+            return cmdChannel.writeAndFlush(textWebSocketFrame);
+        }
+
     }
 
     public void forward(String paramContent, final Channel channel) {
@@ -121,7 +146,9 @@ public class NatClient {
             @Override
             public void onSekiroResponse(SekiroNatMessage sekiroNatMessage) {
                 if (sekiroNatMessage == null) {
-                    ReturnUtil.writeRes(channel, CommonRes.failed("timeout"));
+                    CommonRes<Object> timeout = CommonRes.failed("timeout");
+                    timeout.setClientId(clientId);
+                    ReturnUtil.writeRes(channel, timeout);
                     timeOutCount.incrementAndGet();
                     checkDisconnectForTimeout();
                     return;
