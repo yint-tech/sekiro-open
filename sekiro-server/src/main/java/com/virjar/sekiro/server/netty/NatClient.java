@@ -192,7 +192,9 @@ public class NatClient {
         nettyInvokeRecord.waitCallback(timeOut);
         SekiroNatMessage sekiroNatMessage = nettyInvokeRecord.finalResult();
         if (sekiroNatMessage == null) {
-            ReturnUtil.writeRes(httpServletResponse, CommonRes.failed("timeout"));
+            CommonRes<Object> timeout = CommonRes.failed("timeout");
+            timeout.setClientId(clientId);
+            ReturnUtil.writeRes(httpServletResponse, timeout);
             timeOutCount.incrementAndGet();
             checkDisconnectForTimeout();
             return;
