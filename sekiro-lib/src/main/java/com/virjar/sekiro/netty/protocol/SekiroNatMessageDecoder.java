@@ -27,7 +27,7 @@ public class SekiroNatMessageDecoder extends ByteToMessageDecoder {
             }
 
             int frameLength = in.getInt(0);
-            if (in.readableBytes() < frameLength) {
+            if (in.readableBytes() < frameLength + HEADER_SIZE) {
                 return;
             }
             in.readInt();
