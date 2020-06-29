@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -39,6 +40,8 @@ public class SekiroWebSocketHandler extends SimpleChannelInboundHandler<Object> 
 
     private WebSocketServerHandshaker handshaker;
 
+
+    private StringBuilder frameBuffer = null;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -70,7 +73,16 @@ public class SekiroWebSocketHandler extends SimpleChannelInboundHandler<Object> 
             return;
         }
 
-        if (!(frame instanceof TextWebSocketFrame)) {
+        if (frame instanceof TextWebSocketFrame) {
+            frameBuffer = new StringBuilder();
+            frameBuffer.append(((TextWebSocketFrame) frame).text());
+        } else if (frame instanceof ContinuationWebSocketFrame) {
+            if (frameBuffer != null) {
+                frameBuffer.append(((ContinuationWebSocketFrame) frame).text());
+            } else {
+                log.warn("Continuation frame received without initial frame.");
+            }
+        } else {
             String errorMessage = "can not support this message";
             ByteBuf byteBuf = Unpooled.wrappedBuffer(errorMessage.getBytes());
             DefaultFullHttpResponse defaultFullHttpResponse = new DefaultFullHttpResponse(
@@ -78,15 +90,20 @@ public class SekiroWebSocketHandler extends SimpleChannelInboundHandler<Object> 
             ctx.channel().write(defaultFullHttpResponse);
             return;
         }
-        // 返回应答消息
-        String request = ((TextWebSocketFrame) frame).text();
+
+        //可能有分片
+        if (!frame.isFinalFragment()) {
+            return;
+        }
+
+        String response = frameBuffer.toString();
         JSONObject jsonObject;
         try {
-            jsonObject = JSONObject.parseObject(request);
+            jsonObject = JSONObject.parseObject(response);
         } catch (Exception e) {
             log.error("the ws client response none json format data", e);
             // js的json好像和fastjson不一样
-            log.warn("error response data: " + request);
+            log.warn("error response data: " + response);
             ctx.channel().close();
             return;
         }
