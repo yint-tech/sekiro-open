@@ -27,6 +27,7 @@ function SekiroClient(wsURL) {
     this.wsURL = wsURL;
     this.handlers = {};
     this.socket = {};
+    this.base64 = false;
     // check
     if (!wsURL) {
         throw new Error('wsURL can not be empty!!')
@@ -201,6 +202,10 @@ SekiroClient.prototype.sendSuccess = function (seq, response) {
         return;
     }
 
+    if (this.base64) {
+        responseText = this.base64Encode(responseText)
+    }
+
     //大报文要分段传输
     var segmentSize = 1024 * 5;
     var i = 0, totalFrameIndex = Math.floor(responseText.length / segmentSize) + 1;
@@ -210,6 +215,7 @@ SekiroClient.prototype.sendSuccess = function (seq, response) {
                 __sekiro_frame_total: totalFrameIndex,
                 __sekiro_index: i,
                 __sekiro_seq__: seq,
+                __sekiro_base64: this.base64,
                 __sekiro_is_frame: true,
                 __sekiro_content: responseText.substring(i * segmentSize, (i + 1) * segmentSize)
             }
@@ -217,7 +223,6 @@ SekiroClient.prototype.sendSuccess = function (seq, response) {
         console.log("frame: " + frameData);
         this.socket.send(frameData);
     }
-
 };
 
 SekiroClient.prototype.sendFailed = function (seq, errorMessage) {
@@ -243,4 +248,75 @@ SekiroClient.prototype.registerAction = function (action, handler) {
     console.log("sekiro: register action: " + action);
     this.handlers[action] = handler;
     return this;
+};
+
+SekiroClient.prototype.encodeWithBase64 = function () {
+    this.base64 = arguments && arguments.length > 0 && arguments[0];
+};
+
+SekiroClient.prototype.base64Encode = function (s) {
+    if (arguments.length !== 1) {
+        throw "SyntaxError: exactly one argument required";
+    }
+
+    s = String(s);
+    if (s.length === 0) {
+        return s;
+    }
+
+    function _get_chars(ch, y) {
+        if (ch < 0x80) y.push(ch);
+        else if (ch < 0x800) {
+            y.push(0xc0 + ((ch >> 6) & 0x1f));
+            y.push(0x80 + (ch & 0x3f));
+        } else {
+            y.push(0xe0 + ((ch >> 12) & 0xf));
+            y.push(0x80 + ((ch >> 6) & 0x3f));
+            y.push(0x80 + (ch & 0x3f));
+        }
+    }
+
+    var _PADCHAR = "=",
+        _ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+        _VERSION = "1.1";//Mr. Ruan fix to 1.1 to support asian char(utf8)
+
+    //s = _encode_utf8(s);
+    var i,
+        b10,
+        y = [],
+        x = [],
+        len = s.length;
+    i = 0;
+    while (i < len) {
+        _get_chars(s.charCodeAt(i), y);
+        while (y.length >= 3) {
+            var ch1 = y.shift();
+            var ch2 = y.shift();
+            var ch3 = y.shift();
+            b10 = (ch1 << 16) | (ch2 << 8) | ch3;
+            x.push(_ALPHA.charAt(b10 >> 18));
+            x.push(_ALPHA.charAt((b10 >> 12) & 0x3F));
+            x.push(_ALPHA.charAt((b10 >> 6) & 0x3f));
+            x.push(_ALPHA.charAt(b10 & 0x3f));
+        }
+        i++;
+    }
+
+
+    switch (y.length) {
+        case 1:
+            var ch = y.shift();
+            b10 = ch << 16;
+            x.push(_ALPHA.charAt(b10 >> 18) + _ALPHA.charAt((b10 >> 12) & 0x3F) + _PADCHAR + _PADCHAR);
+            break;
+
+        case 2:
+            var ch1 = y.shift();
+            var ch2 = y.shift();
+            b10 = (ch1 << 16) | (ch2 << 8);
+            x.push(_ALPHA.charAt(b10 >> 18) + _ALPHA.charAt((b10 >> 12) & 0x3F) + _ALPHA.charAt((b10 >> 6) & 0x3f) + _PADCHAR);
+            break;
+    }
+
+    return x.join("");
 };

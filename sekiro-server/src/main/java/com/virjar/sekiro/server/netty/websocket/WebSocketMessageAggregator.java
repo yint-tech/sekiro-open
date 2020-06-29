@@ -3,6 +3,7 @@ package com.virjar.sekiro.server.netty.websocket;
 import com.google.common.collect.Sets;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.server.netty.nat.TaskRegistry;
+import com.virjar.sekiro.server.util.Base64;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -73,6 +74,16 @@ public class WebSocketMessageAggregator {
                     stringBuilder.append(str);
                 }
                 String aggregatorResponse = stringBuilder.toString();
+                if (content.getBooleanValue("__sekiro_base64")) {
+                    byte[] decode = Base64.decode(aggregatorResponse);
+                    if (decode == null) {
+                        //不应该发生，如果解码失败，那么暂时交给业务放自己解码
+                        log.error("decode base64 failed");
+                    } else {
+                        aggregatorResponse = new String(decode);
+                    }
+                }
+
                 log.info("aggregatorResponse: {}", aggregatorResponse);
 
                 SekiroNatMessage sekiroNatMessage = new SekiroNatMessage();
