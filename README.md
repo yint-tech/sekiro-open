@@ -60,7 +60,7 @@ android update sdk -u --all --filter itemId(在--all里面，缺少那个选择�
 2. 通过命令 ``nohup java -jar sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar >/dev/null 2>&1  &`` 即可启动服务器
 
 ### docker 部署
-参见项目: https://github.com/lbbniu/sekiro-server
+参见项目: https://github.com/virjar/sekiro-server  ~~https://github.com/lbbniu/sekiro-server~~
 
 ### 端口配置
 
