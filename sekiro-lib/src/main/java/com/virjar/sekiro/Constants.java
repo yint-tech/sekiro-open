@@ -24,6 +24,8 @@ public interface Constants {
 
     int defaultNatHttpServerPort = 5601;
 
+    int defaultWebSocketServerPort = 5603;
+
     AttributeKey<String> CLIENT_KEY = AttributeKey.newInstance("client_key");
     AttributeKey<String> GROUP_KEY = AttributeKey.newInstance("goup_key");
 

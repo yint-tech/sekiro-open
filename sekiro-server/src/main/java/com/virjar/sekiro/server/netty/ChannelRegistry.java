@@ -2,6 +2,7 @@ package com.virjar.sekiro.server.netty;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.virjar.sekiro.api.CommonRes;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,7 +45,7 @@ public class ChannelRegistry {
     }
 
 
-    public void registryClient(String client, Channel cmdChannel) {
+    public void registryClient(String client, Channel cmdChannel, NatClient.NatClientType natClientType) {
         log.info("register for client:{}", client);
 
         int index = client.indexOf("@");
@@ -54,8 +55,7 @@ public class ChannelRegistry {
         String[] clientAndGroup = client.split("@");
         String group = clientAndGroup[1];
         String clientId = clientAndGroup[0];
-        createOrGet(group).registryClient(clientId, cmdChannel);
-
+        createOrGet(group).registryClient(clientId, cmdChannel, natClientType);
     }
 
 
@@ -109,4 +109,18 @@ public class ChannelRegistry {
         return Lists.newArrayList(clientGroupMap.keySet());
     }
 
+    public CommonRes<?> forceDisconnect(String group, String clientId) {
+        if (group == null) {
+            return CommonRes.failed("need param:{group}");
+        }
+        ClientGroup clientGroup = clientGroupMap.get(group);
+        if (clientGroup == null) {
+            return CommonRes.failed("no group:{" + group + "}");
+        }
+        String errorMessage = clientGroup.disconnect(clientId);
+        if (errorMessage != null) {
+            return CommonRes.failed(errorMessage);
+        }
+        return CommonRes.success("ok");
+    }
 }

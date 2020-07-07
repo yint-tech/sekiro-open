@@ -60,7 +60,7 @@ android update sdk -u --all --filter itemId(在--all里面，缺少那个选择�
 2. 通过命令 ``nohup java -jar sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar >/dev/null 2>&1  &`` 即可启动服务器
 
 ### docker 部署
-参见项目: https://github.com/lbbniu/sekiro-server
+参见项目: https://github.com/virjar/sekiro-server  ~~https://github.com/lbbniu/sekiro-server~~
 
 ### 端口配置
 
@@ -332,6 +332,33 @@ virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
 
 协议参见Sekiro二进制协议文档: [protoal.md](protocal.md)
 
+### web注入
+
+Sekiro已支持websocket协议，使用本功能可以支持注入js到浏览器后，调用浏览器环境的js代码。
+Web环境基于WebSocket实现，使用方法也很简单:
+
+```
+ <script type="text/javascript" src="http://file.virjar.com/sekiro_web_client.js?_=123"></script>
+    <script type="text/javascript">
+
+        var client = new SekiroClient("wss://sekiro.virjar.com/websocket?group=ws-group&clientId=testClient");
+        client.registerAction("clientTime",function(request, resolve,reject ){
+            resolve(""+new Date());
+        })
+
+    </script>
+```
+
+你可以运行我们提供的demo测试Sekiro的JS RPC能力 [js_rpc_sekiro_demo.html](jsclient/sekiro_demo.html)
+
+![sekiro_demo.gif](jsclient/sekiro_demo.gif)
+
+![sekiro_demo.gif](http://file.virjar.com/sekiro_demo.gif)
+
+### ssl问题
+如果你要注入的网页是https的，那么直接通过我们的websocket服务会被浏览器拦截。那么你需要使得你的服务器支持ssl WebSocket，Sekiro的demo网站已经完成了相关配置。
+此时你应该使用 ``wss:``协议替代:``ws:``,如：``wss://sekiro.virjar.com/websocket?group=ws-group&clientId=testClient``
+
 ## 相关分析文章
 
 [https://github.com/langgithub/sekiro-lang](https://github.com/langgithub/sekiro-lang)
@@ -344,3 +371,18 @@ virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
 
 569543649
 
+#### 合作
+
+开源即免费，我不限制你们拿去搞事情，但是开源并不代表义务解答问题。如果你发现了有意思的bug，或者有建设性意见，我乐意参与讨论。
+如果你想寻求解决方案，但是又没有能力驾驭这个项目，欢迎走商务合作通道。联系qq：819154316，或者加群：569543649。
+拒绝回答常见问题！！！
+
+#### 内部培训
+Sekiro高阶培训和部分抓取技术课程可在此连接购买 [猿人学·爬虫进阶课](https://detail.youzan.com/show/goods?alias=2okabph85ypv1&activity_alias=undefined)
+
+
+#### 捐赠
+如果你觉得作者辛苦了，可以的话请我喝杯咖啡
+![alipay](deploy/reward.jpg)
+
+![reward2](http://file.virjar.com/reward.jpg)

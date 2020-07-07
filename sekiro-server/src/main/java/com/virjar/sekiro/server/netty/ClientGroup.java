@@ -21,6 +21,18 @@ class ClientGroup {
 
     private LinkedList<String> poolQueue = new LinkedList<>();
 
+    synchronized String disconnect(String clientId) {
+        NatClient natClient = natClientMap.get(clientId);
+        natClientMap.remove(clientId);
+        removeQueue(clientId);
+        if (natClient == null) {
+            return "no client: " + clientId;
+        } else {
+            natClient.getCmdChannel().close();
+        }
+        return null;
+    }
+
     //对象操作全部加锁，防止并发紊乱
     synchronized List<NatClient> queue() {
         List<NatClient> ret = Lists.newArrayListWithCapacity(poolQueue.size());
@@ -59,7 +71,7 @@ class ClientGroup {
         while (true) {
             String poll = poolQueue.poll();
             if (poll == null) {
-                log.info("pool queue empty");
+                log.info("pool queue empty for group:{}", group);
                 return null;
             }
 
@@ -82,18 +94,21 @@ class ClientGroup {
     }
 
 
-    synchronized void registryClient(String client, Channel cmdChannel) {
-        NatClient natClient = natClientMap.get(client);
-        if (natClient != null) {
-            Channel cmdChannelOld = natClient.getCmdChannel();
-            if (cmdChannelOld != cmdChannel) {
-                log.info("old channel exist,attach again，oldChannel:{}  now channel:{} client:{}", cmdChannelOld, cmdChannel, client);
-                natClient.attachChannel(cmdChannel);
-            }
-            return;
-        }
+    synchronized void registryClient(String client, Channel cmdChannel, NatClient.NatClientType natClientType) {
+        NatClient oldNatClient = natClientMap.get(client);
+//        if (natClient != null) {
+//            Channel cmdChannelOld = natClient.getCmdChannel();
+//            if (cmdChannelOld != cmdChannel) {
+//                log.info("old channel exist,attach again，oldChannel:{}  now channel:{} client:{}", cmdChannelOld, cmdChannel, client);
+//                natClient.attachChannel(cmdChannel);
+//            }
+//            return;
+//        }
         log.info("register a client :{} with channel:{} ", client, cmdChannel);
-        natClient = new NatClient(client, group, cmdChannel);
+        NatClient natClient = new NatClient(client, group, cmdChannel, natClientType);
+        if ((oldNatClient != null)) {
+            natClient.migrateSeqGenerator(oldNatClient);
+        }
         natClientMap.put(client, natClient);
         removeQueue(client);
         poolQueue.add(client);

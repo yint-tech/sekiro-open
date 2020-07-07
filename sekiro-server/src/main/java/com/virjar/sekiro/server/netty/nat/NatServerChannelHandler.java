@@ -4,6 +4,7 @@ package com.virjar.sekiro.server.netty.nat;
 import com.virjar.sekiro.Constants;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.server.netty.ChannelRegistry;
+import com.virjar.sekiro.server.netty.NatClient;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +29,9 @@ public class NatServerChannelHandler extends SimpleChannelInboundHandler<SekiroN
             case SekiroNatMessage.TYPE_INVOKE:
                 handleInvokeResponseMessage(channelHandlerContext, proxyMessage);
                 break;
+            default:
+                log.info("协议紊乱。。。关闭连接");
+                channelHandlerContext.channel().close();
         }
     }
 
@@ -38,7 +42,7 @@ public class NatServerChannelHandler extends SimpleChannelInboundHandler<SekiroN
             return;
         }
         long serialNumber = proxyMessage.getSerialNumber();
-        if (serialNumber < 0) {
+        if (serialNumber <= 0) {
             log.error("serial number not set for client!!");
             return;
         }
@@ -68,12 +72,12 @@ public class NatServerChannelHandler extends SimpleChannelInboundHandler<SekiroN
             log.error("clientId can not empty");
             return;
         }
-        ChannelRegistry.getInstance().registryClient(clientIdAndGroup, ctx.channel());
+        ChannelRegistry.getInstance().registryClient(clientIdAndGroup, ctx.channel(), NatClient.NatClientType.NORMAL);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("error", cause);
+        log.error("error with channel:" + ctx.channel(), cause);
         super.exceptionCaught(ctx, cause);
     }
 
