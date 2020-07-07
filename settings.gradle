@@ -1,1 +1,7 @@
-include ':app-demo', ':sekiro-server', ':sekiro-lib'
+include ':sekiro-server',
+        ':sekiro-lib'
+
+if (new File('.idea').exists()) {
+    include ':app-demo'
+}
+
