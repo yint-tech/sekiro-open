@@ -1,50 +1,64 @@
 # sekiro
 
-SEKIRO 是一个android下的API服务暴露框架，可以用在app逆向、app数据抓取、android群控等场景。
+SEKIRO 是一个 android 下的 API 服务暴露框架，可以用在 app 逆向、app 数据抓取、android 群控等场景。
 
-Sekiro是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/hermesagent) 的升级版，和其他群控框架相比的特点如下：
+Sekiro 是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/hermesagent) 的升级版，和其他群控框架相比的特点如下：
 
-1. 对网络环境要求低，sekiro使用长链接管理服务，使得Android手机可以分布于全国各地，甚至全球各地。手机掺合在普通用户群体，方便实现反抓突破，更加适合获取下沉数据。
-2. 不依赖hook框架，就曾经的Hermes系统来说，和xposed框架深度集成，在当今hook框架遍地开花的环境下，框架无法方便迁移。所以在Sekiro的设计中，只提供了RPC功能了。
-3. 纯异步调用，在Hermes和其他曾经出现过的框架中，基本都是同步调用。虽然说签名计算可以达到上百QPS，但是如果用来做业务方法调用的话，由于调用过程穿透到目标app的服务器，会有大量请求占用线程。系统吞吐存在上线(hermes系统达到2000QPS的时候，基本无法横向扩容和性能优化了)。但是Sekiro全程使用NIO，理论上其吞吐可以把资源占满。
-4. client实时状态，在Hermes系统我使用http进行调用转发，通过手机上报心跳感知手机存活状态。心跳时间至少20s，这导致服务器调度层面对手机在线状态感知不及时，请求过大的时候大量转发调用由于client掉线timeout。在Sekiro长链接管理下，手机掉线可以实时感知。不再出现由于框架层面机制导致timeout
-
+1. 对网络环境要求低，sekiro 使用长链接管理服务，使得 Android 手机可以分布于全国各地，甚至全球各地。手机掺合在普通用户群体，方便实现反抓突破，更加适合获取下沉数据。
+2. 不依赖 hook 框架，就曾经的 Hermes 系统来说，和 xposed 框架深度集成，在当今 hook 框架遍地开花的环境下，框架无法方便迁移。所以在 Sekiro 的设计中，只提供了 RPC 功能了。
+3. 纯异步调用，在 Hermes 和其他曾经出现过的框架中，基本都是同步调用。虽然说签名计算可以达到上百 QPS，但是如果用来做业务方法调用的话，由于调用过程穿透到目标 app 的服务器，会有大量请求占用线程。系统吞吐存在上线(hermes 系统达到 2000QPS 的时候，基本无法横向扩容和性能优化了)。但是 Sekiro 全程使用 NIO，理论上其吞吐可以把资源占满。
+4. client 实时状态，在 Hermes 系统我使用 http 进行调用转发，通过手机上报心跳感知手机存活状态。心跳时间至少 20s，这导致服务器调度层面对手机在线状态感知不及时，请求过大的时候大量转发调用由于 client 掉线 timeout。在 Sekiro 长链接管理下，手机掉线可以实时感知。不再出现由于框架层面机制导致 timeout
 
 # 部署流程
 
-部署区分服务器端部署和客户端部署，服务器使用SpringBoot实现，占三个端口(``server.port: http管理端，同步http``| ``natServerPort:手机nat穿透端，和手机长链接``| ``natHttpServerPort:NIO的http服务端，只提供RPC调用入口``)
-手机端一般附加在apk代码逻辑中。
+部署区分服务器端部署和客户端部署，服务器使用 SpringBoot 实现，占三个端口(`server.port: http管理端，同步http`| `natServerPort:手机nat穿透端，和手机长链接`| `natHttpServerPort:NIO的http服务端，只提供RPC调用入口`)
+手机端一般附加在 apk 代码逻辑中。
 
 ## 服务端部署
 
-两种方式，基于源码部署和jar包运行
+两种方式，基于源码部署和 jar 包运行
 
 ### 源码部署服务器
-执行脚本 ``./runProd.sh``
 
-### jar包部署
+执行脚本 `./runProd.sh`
 
-1. 当前目录执行代码: ``./gradlew sekiro-server:bootJar``  即可在 `` sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar``找到all-in-one的jar包
-2. 通过命令 ``nohup java -jar sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar >/dev/null 2>&1  &`` 即可启动服务器
+### jar 包部署
+
+1. 当前目录执行代码: `./gradlew sekiro-server:bootJar` 即可在 `sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar`找到 all-in-one 的 jar 包
+2. 通过命令 `nohup java -jar sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar >/dev/null 2>&1 &` 即可启动服务器
 
 ### docker 部署
-参见项目: https://github.com/virjar/sekiro-server  ~~https://github.com/lbbniu/sekiro-server~~
+
+[Dockerfile](./Dockerfile)
+
+```sh
+
+# 直接运行, master分支代码aliyun自动构建
+docker run --restart=always --name sekiro-server  registry.cn-beijing.aliyuncs.com/virjar/sekiro-server:latest
+
+# 或者获取源码构建自行构建
+
+docker build . -t sekiro-server:latest
+docker run --restart=always --name sekiro-server sekiro-server:latest
+
+```
 
 ### 端口配置
 
-在``sekiro-server/src/main/resources/appliation.properties``中可以配置三个服务端端口
+在`sekiro-server/src/main/resources/appliation.properties`中可以配置三个服务端端口
 
+## client 使用
 
-## client使用
+需要注意，client api 发布在 maven 仓库，而非 jcenter 仓库
 
-需要注意，client api发布在maven仓库，而非jcenter仓库
 ```
 dependencies {
     implementation 'com.virjar:sekiro-api:1.0.1'
 }
 ```
 
-然后即可在apk代码中书写调用服务逻辑:
+然后即可在 apk 代码中书写调用服务逻辑:
+
 ```
 SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
         .registerHandler("clientTime",new SekiroRequestHandler(){
@@ -55,7 +69,8 @@ SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
         });
 
 ```
-安装apk到手机，并打开，然后可以通过服务器访问这个接口
+
+安装 apk 到手机，并打开，然后可以通过服务器访问这个接口
 
 ```
 http://sekiro.virjar.com/groupList
@@ -75,20 +90,21 @@ http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=
 
 {"clientId":"2e77bbfa_869941041217576","data":"process: com.virjar.sekiro.demoapp : now:1570897005965 your param1:自定义参数","ok":true,"status":0}
 ```
-client demo在``app-demo``子工程可以看到，直接运行app-demo，即可在 sekiro.virjar.com看到你的设备列表
 
-# 在类似xposed的代码注入框架中使用Sekiro
+client demo 在`app-demo`子工程可以看到，直接运行 app-demo，即可在 sekiro.virjar.com 看到你的设备列表
 
-Sekiro本身不提供代码注入功能，不过Sekiro一般需要和代码注入框架配合产生作用，如和Xposed配合，可以方便调用app内部私有API，一般情况下，在Xposed入口启动Sekiro，然后接受服务器指令,并将参数转发到app内部。
+# 在类似 xposed 的代码注入框架中使用 Sekiro
 
-Sekiro调用真实apk的例子： *为避免风险，现已经移除Demo*
+Sekiro 本身不提供代码注入功能，不过 Sekiro 一般需要和代码注入框架配合产生作用，如和 Xposed 配合，可以方便调用 app 内部私有 API，一般情况下，在 Xposed 入口启动 Sekiro，然后接受服务器指令,并将参数转发到 app 内部。
 
+Sekiro 调用真实 apk 的例子： _为避免风险，现已经移除 Demo_
 
-# 服务器异步http
+# 服务器异步 http
 
-sekiro框架在http服务模块，提供了两个http端口，分别为BIO和NIO模式，其中BIO模式提供给tomcat容器使用，为了方便springBoot集成。另一方面，NIO提供给调用转发模块，NIO转发过程并不会占用线程池资源，理论上只对连接句柄和CPU资源存在瓶颈。
+sekiro 框架在 http 服务模块，提供了两个 http 端口，分别为 BIO 和 NIO 模式，其中 BIO 模式提供给 tomcat 容器使用，为了方便 springBoot 集成。另一方面，NIO 提供给调用转发模块，NIO 转发过程并不会占用线程池资源，理论上只对连接句柄和 CPU 资源存在瓶颈。
 
-sekiro的这两个服务分别占用两个不同端口，分别为:
+sekiro 的这两个服务分别占用两个不同端口，分别为:
+
 ```
 #tomcat 占用端口
 server.port=5602
@@ -98,13 +114,14 @@ natServerPort=5600
 natHttpServerPort=5601
 ```
 
-同时两个请求的uri也有一点差异，分别为,
+同时两个请求的 uri 也有一点差异，分别为,
 
-BIO:  http://sekiro.virjar.com/invoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
+BIO: http://sekiro.virjar.com/invoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
 
-NIO:  http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
+NIO: http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
 
-可以看到sekiro的demo网站中，都是占用了统一个端口，这是因为存在ngnix转发，你可以参照如下配置实现这个效果:
+可以看到 sekiro 的 demo 网站中，都是占用了统一个端口，这是因为存在 ngnix 转发，你可以参照如下配置实现这个效果:
+
 ```
 upstream sekiro_server {
   server 127.0.0.1:5602;
@@ -162,24 +179,26 @@ location /asyncInvoke {
 }
 ```
 
-强烈建议使用NIO接口访问调用服务
+强烈建议使用 NIO 接口访问调用服务
 
 # 接口说明
 
 ## 基本概念解释
-在Sekiro定义中，有几个特殊概念用来描述手机或者业务类型。了解如何使用Sekiro之前需要知道这几个概念的含义。
 
+在 Sekiro 定义中，有几个特殊概念用来描述手机或者业务类型。了解如何使用 Sekiro 之前需要知道这几个概念的含义。
 
 ### group
-group的作用是区分接口类型，如在sekiro系统中，存在多个不同app的服务，那么不同服务通过group区分。或者同一个app的服务也可能存在差异，如登陆和未登陆分不同接口组，签名计算和
-数据请求调用区分不同接口组。Sekiro不限定group具体含义，仅要求group作为一个唯一字符串，使用方需要自行保证各自group下是的手机业务唯一性。
 
-备注：曾经的Hermes系统中，接口组定义为app的packageName，导致同一个app的需求，无法进行二次路由，签名计算和数据调用无法隔离。登陆和未登陆手机无法区分
+group 的作用是区分接口类型，如在 sekiro 系统中，存在多个不同 app 的服务，那么不同服务通过 group 区分。或者同一个 app 的服务也可能存在差异，如登陆和未登陆分不同接口组，签名计算和
+数据请求调用区分不同接口组。Sekiro 不限定 group 具体含义，仅要求 group 作为一个唯一字符串，使用方需要自行保证各自 group 下是的手机业务唯一性。
+
+备注：曾经的 Hermes 系统中，接口组定义为 app 的 packageName，导致同一个 app 的需求，无法进行二次路由，签名计算和数据调用无法隔离。登陆和未登陆手机无法区分
 
 ### action
 
-action代表group下的不同接口，可以把group叫做接口组，action代表接口。Sekiro的服务调用路由最终到达action层面，实践经验一般来说同一个app，或者说同一个业务，大多需要同时
-暴露多个接口。action最终会映射到一个固定的java handler class下。
+action 代表 group 下的不同接口，可以把 group 叫做接口组，action 代表接口。Sekiro 的服务调用路由最终到达 action 层面，实践经验一般来说同一个 app，或者说同一个业务，大多需要同时
+暴露多个接口。action 最终会映射到一个固定的 java handler class 下。
+
 ```
 SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
         .registerHandler("clientTime",new SekiroRequestHandler(){
@@ -191,53 +210,57 @@ SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
 
 ```
 
-demo代码中，会在group:``sekiro-demo``下暴露一个action为:``clientTime``的服务。
+demo 代码中，会在 group:`sekiro-demo`下暴露一个 action 为:`clientTime`的服务。
 
 ### clientId
-clientId用于区分不同手机，同一个接口可以部署在多个手机上，Sekiro会通过轮询策略分配调用流量(暂时使用轮询策略),客户端需要自行保证clientId唯一。如果你没有特殊需要，可以通过AndroidId，也可以使用随机数。
-我更加建议使用手机本身的硬件Id作为clientId，如手机序列号，IMEI。
+
+clientId 用于区分不同手机，同一个接口可以部署在多个手机上，Sekiro 会通过轮询策略分配调用流量(暂时使用轮询策略),客户端需要自行保证 clientId 唯一。如果你没有特殊需要，可以通过 AndroidId，也可以使用随机数。
+我更加建议使用手机本身的硬件 Id 作为 clientId，如手机序列号，IMEI。
 
 ### bindClient
-这是转发服务提供的一个特殊参数，用于指定特定的手机进行转发调用。如果你的业务在某个手机存在多次调用的事务一致性保证需求，或者你需要在Sekiro上层系统实现手机资源调用调度。那么通过传递参数可以是的Sekiro服务放弃调度策略
+
+这是转发服务提供的一个特殊参数，用于指定特定的手机进行转发调用。如果你的业务在某个手机存在多次调用的事务一致性保证需求，或者你需要在 Sekiro 上层系统实现手机资源调用调度。那么通过传递参数可以是的 Sekiro 服务放弃调度策略
 管理。或者在问题排查阶段，将请求发送到特定手机用于观察手机状态
 
-备注: Hermes系统中，存在资源可用性预测算法，使用动态因子完成调用流量负载均衡。Sekiro有同步该算法的计划，除非有特殊需要，一般不建议Sekiro上游系统托管手机资源调度。
+备注: Hermes 系统中，存在资源可用性预测算法，使用动态因子完成调用流量负载均衡。Sekiro 有同步该算法的计划，除非有特殊需要，一般不建议 Sekiro 上游系统托管手机资源调度。
 
-备注: 目前Sekiro存在四个保留参数，业务放不能使用这几个作为参数的key，包括:group,action,clientId,invoke_timeOut
+备注: 目前 Sekiro 存在四个保留参数，业务放不能使用这几个作为参数的 key，包括:group,action,clientId,invoke_timeOut
 
 ## 服务器接口
 
 ### 分组列举 /groupList
 
-展示当前系统中注册过的所有group，如果你新开发一个需求，请注意查询一下系统中已有group，避免接口组冲突。内部系统定制可以实现group申请注册，分配注入准入密码等功能。
+展示当前系统中注册过的所有 group，如果你新开发一个需求，请注意查询一下系统中已有 group，避免接口组冲突。内部系统定制可以实现 group 申请注册，分配注入准入密码等功能。
 
-### client资源列举 /natChannelStatus
+### client 资源列举 /natChannelStatus
 
-展示特定group下，注册过那些手机。上游如需托管调度，那么需要通过这个接口同步client资源。同时也依靠这个接口判定你的客户端是否正确注册。
+展示特定 group 下，注册过那些手机。上游如需托管调度，那么需要通过这个接口同步 client 资源。同时也依靠这个接口判定你的客户端是否正确注册。
 
 ### 调用转发 /invoke | /asyncInvoke
 
-实现请求到手机的调用转发，区分invoke和asyncInvoke，他们的接口定义一样，只是asyncInvoke使用异步http server实现，一般情况建议使用asyncInvoke。
+实现请求到手机的调用转发，区分 invoke 和 asyncInvoke，他们的接口定义一样，只是 asyncInvoke 使用异步 http server 实现，一般情况建议使用 asyncInvoke。
 
-invoke接口定义比较宽泛，可支持GET/POST,可支持 ``application/x-www-form-urlencoded``和``application/json``,方便传入各种异构参数，不过大多数情况，Get请求就足够使用。
+invoke 接口定义比较宽泛，可支持 GET/POST,可支持 `application/x-www-form-urlencoded`和`application/json`,方便传入各种异构参数，不过大多数情况，Get 请求就足够使用。
 
-## client接口
+## client 接口
 
-之前多次展示client的demo，这里讲诉一下client的食用姿势。
+之前多次展示 client 的 demo，这里讲诉一下 client 的食用姿势。
 
-通过SekiroClient#start获取一个SekiroClient实例，至少需要指定：服务器，clientId。Sekiro存在多个重载的start方法，选择合适的使用即可。如:``SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")``
-之后，你需要通过registerHandler注册接口，每个handler就类似SpringMVC里面的一个controller方法，用于处理一个特殊的调用请求。
+通过 SekiroClient#start 获取一个 SekiroClient 实例，至少需要指定：服务器，clientId。Sekiro 存在多个重载的 start 方法，选择合适的使用即可。如:`SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")`
+之后，你需要通过 registerHandler 注册接口，每个 handler 就类似 SpringMVC 里面的一个 controller 方法，用于处理一个特殊的调用请求。
 
-备注: 可以看到，handleRequest方法没有返回值，这是因为这个接口是异步的，当数据准备好之后通过response写会数据即可。千万注意，不要在这个接口中执行网络请求之类的耗时请求，如果有耗时调用，请单独设定线程或者线程池执行。
+备注: 可以看到，handleRequest 方法没有返回值，这是因为这个接口是异步的，当数据准备好之后通过 response 写会数据即可。千万注意，不要在这个接口中执行网络请求之类的耗时请求，如果有耗时调用，请单独设定线程或者线程池执行。
 
+### SekiroRequest 和 SekiroResponse
 
-### SekiroRequest和SekiroResponse
-分别为业务方请求对象包装，和数据返回句柄。SekiroRequest有一堆Get方法，可以获取请求内容。SekiroResponse有一堆send方法用于回写数据。
+分别为业务方请求对象包装，和数据返回句柄。SekiroRequest 有一堆 Get 方法，可以获取请求内容。SekiroResponse 有一堆 send 方法用于回写数据。
 
 ### 自动参数绑定
-类似springMVC，在请求调用进入方法的时候，一般框架会支持请求内容自动转化为java对象。Sekiro也支持简单的参数绑定。这可以使得handler代码更加优雅。
-参数绑定包括参数自动注入，参数自动转换，参数校验等。这个功能可以节省部分handler入口对于参数的处理逻辑代码。
-如demo:
+
+类似 springMVC，在请求调用进入方法的时候，一般框架会支持请求内容自动转化为 java 对象。Sekiro 也支持简单的参数绑定。这可以使得 handler 代码更加优雅。
+参数绑定包括参数自动注入，参数自动转换，参数校验等。这个功能可以节省部分 handler 入口对于参数的处理逻辑代码。
+如 demo:
+
 ```
 public class ClientTimeHandler implements SekiroRequestHandler {
 
@@ -248,7 +271,9 @@ public class ClientTimeHandler implements SekiroRequestHandler {
 }
 
 ```
+
 和如下代码等价:
+
 ```
 public class ClientTimeHandler implements SekiroRequestHandler {
      //这里自动将请求参数中的param1绑定到handler对象的param1参数中
@@ -262,18 +287,20 @@ public class ClientTimeHandler implements SekiroRequestHandler {
 }
 ```
 
-如果参数是一个map，甚至是一个java pojo对象，这里可以支持自动注册。不过需要注意，匿名内部类的handler不支持自动绑定参数
+如果参数是一个 map，甚至是一个 java pojo 对象，这里可以支持自动注册。不过需要注意，匿名内部类的 handler 不支持自动绑定参数
 
 ## 日志规范
-sekiro代码Android和java server共用，但是日志框架两端对齐存在问题。服务器端我才用logback+slf4j的方案。但是这个方案在Android端无法较好的使用，由于sekiro多在代码注入环境下使用，
-Android端的slf4j的驱动``api 'com.github.tony19:logback-android:1.3.0-2'``依赖assets资源配置，或者代码主动配置，这样灵活性不好。
 
-针对于客户端和两端共用代码，我单独抽取日志模块。并实现他们在服务端环境和Android端环境的路由切换。Android端使用原生logger:``android.util.Log``,服务端使用slf4j。
+sekiro 代码 Android 和 java server 共用，但是日志框架两端对齐存在问题。服务器端我才用 logback+slf4j 的方案。但是这个方案在 Android 端无法较好的使用，由于 sekiro 多在代码注入环境下使用，
+Android 端的 slf4j 的驱动`api 'com.github.tony19:logback-android:1.3.0-2'`依赖 assets 资源配置，或者代码主动配置，这样灵活性不好。
 
-sekiro整体日志，使用同一个logger输出。不提供不同模块日志开关或者输出等各种自定义需求。android端使用tag:``Sekiro``，服务端使用name为：``Sekiro``的logger。
-不过这个名字可以被修改，他是一个静态变量:``com.virjar.sekiro.log.SekiroLogger.tag``
+针对于客户端和两端共用代码，我单独抽取日志模块。并实现他们在服务端环境和 Android 端环境的路由切换。Android 端使用原生 logger:`android.util.Log`,服务端使用 slf4j。
 
-在android logcat中，可以通过tag过滤sekiro相关日志：
+sekiro 整体日志，使用同一个 logger 输出。不提供不同模块日志开关或者输出等各种自定义需求。android 端使用 tag:`Sekiro`，服务端使用 name 为：`Sekiro`的 logger。
+不过这个名字可以被修改，他是一个静态变量:`com.virjar.sekiro.log.SekiroLogger.tag`
+
+在 android logcat 中，可以通过 tag 过滤 sekiro 相关日志：
+
 ```
 virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
 --------- beginning of system
@@ -291,19 +318,18 @@ virjar-share:com.southwestairlines.mobile virjar$ adb logcat -s Sekiro
 11-17 16:28:45.624 27941 28000 I Sekiro  : invoke response: {"data":"process: com.virjar.sekiro.demoapp : now:1573979325621 your param1:自定义参数","ok":true,"status":0}
 ```
 
-如果你想托管日志输出规则，那么通过静态方法:``com.virjar.sekiro.log.SekiroLogger.setLogger(com.virjar.sekiro.log.ILogger logger)``覆盖默认实现即可
-
+如果你想托管日志输出规则，那么通过静态方法:`com.virjar.sekiro.log.SekiroLogger.setLogger(com.virjar.sekiro.log.ILogger logger)`覆盖默认实现即可
 
 ## 其他语言
 
-目前sekiro定位为Android框架，如果你在其他平台，或者使用java以外的语言接入sekiro，那么你需要自己实现Sekiro的交互协议
+目前 sekiro 定位为 Android 框架，如果你在其他平台，或者使用 java 以外的语言接入 sekiro，那么你需要自己实现 Sekiro 的交互协议
 
-协议参见Sekiro二进制协议文档: [protoal.md](protocal.md)
+协议参见 Sekiro 二进制协议文档: [protoal.md](protocal.md)
 
-### web注入
+### web 注入
 
-Sekiro已支持websocket协议，使用本功能可以支持注入js到浏览器后，调用浏览器环境的js代码。
-Web环境基于WebSocket实现，使用方法也很简单:
+Sekiro 已支持 websocket 协议，使用本功能可以支持注入 js 到浏览器后，调用浏览器环境的 js 代码。
+Web 环境基于 WebSocket 实现，使用方法也很简单:
 
 ```
  <script type="text/javascript" src="http://file.virjar.com/sekiro_web_client.js?_=123"></script>
@@ -317,15 +343,16 @@ Web环境基于WebSocket实现，使用方法也很简单:
     </script>
 ```
 
-你可以运行我们提供的demo测试Sekiro的JS RPC能力 [js_rpc_sekiro_demo.html](jsclient/sekiro_demo.html)
+你可以运行我们提供的 demo 测试 Sekiro 的 JS RPC 能力 [js_rpc_sekiro_demo.html](jsclient/sekiro_demo.html)
 
 ![sekiro_demo.gif](jsclient/sekiro_demo.gif)
 
 ![sekiro_demo.gif](http://file.virjar.com/sekiro_demo.gif)
 
-### ssl问题
-如果你要注入的网页是https的，那么直接通过我们的websocket服务会被浏览器拦截。那么你需要使得你的服务器支持ssl WebSocket，Sekiro的demo网站已经完成了相关配置。
-此时你应该使用 ``wss:``协议替代:``ws:``,如：``wss://sekiro.virjar.com/websocket?group=ws-group&clientId=testClient``
+### ssl 问题
+
+如果你要注入的网页是 https 的，那么直接通过我们的 websocket 服务会被浏览器拦截。那么你需要使得你的服务器支持 ssl WebSocket，Sekiro 的 demo 网站已经完成了相关配置。
+此时你应该使用 `wss:`协议替代:`ws:`,如：`wss://sekiro.virjar.com/websocket?group=ws-group&clientId=testClient`
 
 ## 相关分析文章
 
@@ -341,15 +368,16 @@ Web环境基于WebSocket实现，使用方法也很简单:
 
 #### 合作
 
-开源即免费，我不限制你们拿去搞事情，但是开源并不代表义务解答问题。如果你发现了有意思的bug，或者有建设性意见，我乐意参与讨论。
-如果你想寻求解决方案，但是又没有能力驾驭这个项目，欢迎走商务合作通道。联系qq：819154316，或者加群：569543649。
+开源即免费，我不限制你们拿去搞事情，但是开源并不代表义务解答问题。如果你发现了有意思的 bug，或者有建设性意见，我乐意参与讨论。
+如果你想寻求解决方案，但是又没有能力驾驭这个项目，欢迎走商务合作通道。联系 qq：819154316，或者加群：569543649。
 拒绝回答常见问题！！！
 
 #### 内部培训
-Sekiro高阶培训和部分抓取技术课程可在此连接购买 [猿人学·爬虫进阶课](https://detail.youzan.com/show/goods?alias=2okabph85ypv1&activity_alias=undefined)
 
+Sekiro 高阶培训和部分抓取技术课程可在此连接购买 [猿人学·爬虫进阶课](https://detail.youzan.com/show/goods?alias=2okabph85ypv1&activity_alias=undefined)
 
 #### 捐赠
+
 如果你觉得作者辛苦了，可以的话请我喝杯咖啡
 ![alipay](deploy/reward.jpg)
 
