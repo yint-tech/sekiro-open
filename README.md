@@ -20,39 +20,7 @@ Sekiro是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/hermes
 两种方式，基于源码部署和jar包运行
 
 ### 源码部署服务器
-执行脚本 ``./runProd.sh``即可，不过在服务器，由于gradle项目存在Android端，所以需要配置Androidsdk环境
-
-
-```
-#安装sdkman
-curl -s "https://get.sdkman.io" | bash
-source "$HOME/.sdkman/bin/sdkman-init.sh"
-#安装gradle
-sdk install gradle 4.4
-
-#下载并解压android sdk
-wget http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
-tar -zvxf android-sdk_r24.4.1-linux.tgz
-#设置环境变量
-
-echo "export ANDROID_HOME=path/to/android-sdk-linux" >> /etc/profile
-echo "export PATH=$ANDROID_HOME/tools:$PATH"
-source /etc/profile
-
-#安装sdk
-android list sdk --all
-android update sdk -u --all --filter 7  #选择对应sdk的编号，我这边装的27.0.3 对应编号7
-
-# 如果出现
-# Failed to install the following Android SDK packages as some licences have not been accepted.
-#      build-tools;28.0.3 Android SDK Build-Tools 28.0.3
-#   To build this project, accept the SDK license agreements and install the missing components using the Android Studio SDK Manager.
-#   Alternatively, to transfer the license agreements from one workstation to another, see http://d.android.com/r/studio-ui/export-licenses.html
-# 那么执行
-android update sdk -u --all --filter itemId(在--all里面，缺少那个选择那个)
-```
-
-之后再次执行脚本  ``./runProd.sh``即可
+执行脚本 ``./runProd.sh``
 
 ### jar包部署
 
