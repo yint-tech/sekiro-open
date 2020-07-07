@@ -353,6 +353,7 @@ Web环境基于WebSocket实现，使用方法也很简单:
 
 ![sekiro_demo.gif](jsclient/sekiro_demo.gif)
 
+![sekiro_demo.gif](http://file.virjar.com/sekiro_demo.gif)
 
 ### ssl问题
 如果你要注入的网页是https的，那么直接通过我们的websocket服务会被浏览器拦截。那么你需要使得你的服务器支持ssl WebSocket，Sekiro的demo网站已经完成了相关配置。
