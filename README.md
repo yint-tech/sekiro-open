@@ -34,12 +34,12 @@ Sekiro 是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/herme
 ```sh
 
 # 直接运行, master分支代码aliyun自动构建
-docker run --restart=always --name sekiro-server -p 5600:5600 -p 5601:5601 -p 5602:5602 -p 5603:5603 registry.cn-beijing.aliyuncs.com/virjar/sekiro-server:latest
+docker run --restart=always --name sekiro-server -p 5600:5600 -p 5601:5601 -p 5602:5602 -p 5603:5603 -d registry.cn-beijing.aliyuncs.com/virjar/sekiro-server:latest
 
 # 或者获取源码构建自行构建
 
 docker build . -t sekiro-server:latest
-docker run --restart=always --name sekiro-server sekiro-server:latest
+docker run --restart=always --name sekiro-server -p 5600:5600 -p 5601:5601 -p 5602:5602 -p 5603:5603 -d sekiro-server:latest
 
 ```
 
