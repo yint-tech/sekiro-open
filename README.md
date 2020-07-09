@@ -38,8 +38,10 @@ docker run --restart=always --name sekiro-server -p 5600:5600 -p 5601:5601 -p 56
 
 # 或者获取源码构建自行构建
 
-docker build . -t sekiro-server:latest
-docker run --restart=always --name sekiro-server -p 5600:5600 -p 5601:5601 -p 5602:5602 -p 5603:5603 -d sekiro-server:latest
+git clone https://github.com/virjar/sekiro.git;
+cd sekiro;
+docker build . -t sekiro-server:latest;
+docker run --restart=always --name sekiro-server -p 5600:5600 -p 5601:5601 -p 5602:5602 -p 5603:5603 -d sekiro-server:latest;
 
 ```
 
