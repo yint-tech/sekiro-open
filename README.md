@@ -43,6 +43,8 @@ cd sekiro;
 docker build . -t sekiro-server:latest;
 docker run --restart=always --name sekiro-server -p 5600:5600 -p 5601:5601 -p 5602:5602 -p 5603:5603 -d sekiro-server:latest;
 
+
+
 ```
 
 ### 端口配置
