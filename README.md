@@ -53,7 +53,7 @@ docker run --restart=always --name sekiro-server sekiro-server:latest
 
 ```
 dependencies {
-    implementation 'com.virjar:sekiro-api:1.0.1'
+    implementation 'com.virjar:sekiro-api:1.0.2'
 }
 ```
 
