@@ -1,5 +1,13 @@
 # sekiro
 
+# 黑名单
+sekiro测试网站没有提供任何防火墙防护。但是 https://sekiro.virjar.com/ 只是测试网站。方便各位用户提供测试接入。不提供线上服务功能。
+如果你希望使用我们系统的线上生产环境，可以走我们商务合作通道(wechat:datiao-world)。以下IP为违规IP，他们使用大量请求调用sekiro网站服务。导致sekiro服务器消耗
+封禁时间：2020-08-13
+- 210.22.76.122
+- 47.89.31.20
+- 139.224.22.50
+
 SEKIRO 是一个 android 下的 API 服务暴露框架，可以用在 app 逆向、app 数据抓取、android 群控等场景。
 
 Sekiro 是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/hermesagent) 的升级版，和其他群控框架相比的特点如下：
