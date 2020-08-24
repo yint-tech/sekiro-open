@@ -146,6 +146,6 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpR
             ReturnUtil.writeRes(channelHandlerContext.channel(), ReturnUtil.failed("no device online"));
             return;
         }
-        natClient.forward(requestJson.toJSONString(), channelHandlerContext.channel());
+        natClient.forward(requestJson, channelHandlerContext.channel());
     }
 }

@@ -1,6 +1,5 @@
 package com.virjar.sekiro.server.netty;
 
-import com.virjar.sekiro.server.netty.nat.TaskRegistry;
 import com.virjar.sekiro.server.netty.websocket.WebSocketMessageAggregator;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,7 +24,7 @@ public class TimeoutTaskCleaner {
 
     private void doClean() {
         //60s之前的任务，都给remove调
-        TaskRegistry.getInstance().cleanBefore(System.currentTimeMillis() - taskCleanDuration * 2);
+        //TaskRegistry.getInstance().cleanBefore(System.currentTimeMillis() - taskCleanDuration * 2);
         WebSocketMessageAggregator.cleanBefore(System.currentTimeMillis() - taskCleanDuration * 3);
     }
 }

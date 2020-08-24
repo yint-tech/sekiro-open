@@ -11,9 +11,11 @@ import com.virjar.sekiro.server.util.ReturnUtil;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -86,12 +88,14 @@ public class NatClient {
         timeOutCount.set(0);
     }
 
-    private NettyInvokeRecord forwardInternal(String paramContent) {
+    private NettyInvokeRecord forwardInternal(String paramContent, boolean register) {
         log.info("request body: {}   clientId:{} forward channel:{}", paramContent, clientId, cmdChannel);
         long invokeTaskId = invokeSeqGenerator.incrementAndGet();
         NettyInvokeRecord nettyInvokeRecord = new NettyInvokeRecord(clientId, group, invokeTaskId, paramContent);
 
-        TaskRegistry.getInstance().registerTask(nettyInvokeRecord);
+        if (register) {
+            TaskRegistry.getInstance().registerTask(nettyInvokeRecord);
+        }
 
         if (natClientType == NatClientType.NORMAL) {
             SekiroNatMessage proxyMessage = new SekiroNatMessage();
@@ -140,8 +144,25 @@ public class NatClient {
 
     }
 
-    public void forward(String paramContent, final Channel channel) {
-        NettyInvokeRecord nettyInvokeRecord = forwardInternal(paramContent);
+    public void forward(JSONObject requestJson, final Channel channel) {
+        String invokeTimeoutString = requestJson.getString("invoke_timeout");
+        int timeOut = NumberUtils.toInt(invokeTimeoutString);
+        if (timeOut < 500) {
+            //默认15s的超时时间
+            timeOut = 15000;
+        }
+
+        final NettyInvokeRecord nettyInvokeRecord = forwardInternal(requestJson.toJSONString(), true);
+        channel.eventLoop().schedule(new Runnable() {
+            @Override
+            public void run() {
+                TaskRegistry.getInstance().forwardClientResponse(
+                        nettyInvokeRecord.getClientId(), nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId(),
+                        null
+                );
+            }
+        }, timeOut, TimeUnit.MILLISECONDS);
+
         nettyInvokeRecord.setSekiroResponseEvent(new NettyInvokeRecord.SekiroResponseEvent() {
             @Override
             public void onSekiroResponse(SekiroNatMessage sekiroNatMessage) {
@@ -188,7 +209,7 @@ public class NatClient {
 
 
     public void forward(String paramContent, Integer timeOut, HttpServletResponse httpServletResponse) {
-        NettyInvokeRecord nettyInvokeRecord = forwardInternal(paramContent);
+        NettyInvokeRecord nettyInvokeRecord = forwardInternal(paramContent, false);
         nettyInvokeRecord.waitCallback(timeOut);
         SekiroNatMessage sekiroNatMessage = nettyInvokeRecord.finalResult();
         if (sekiroNatMessage == null) {
