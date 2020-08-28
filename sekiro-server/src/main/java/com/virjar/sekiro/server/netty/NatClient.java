@@ -88,14 +88,12 @@ public class NatClient {
         timeOutCount.set(0);
     }
 
-    private NettyInvokeRecord forwardInternal(String paramContent, boolean register) {
+    private NettyInvokeRecord forwardInternal(String paramContent) {
         log.info("request body: {}   clientId:{} forward channel:{}", paramContent, clientId, cmdChannel);
         long invokeTaskId = invokeSeqGenerator.incrementAndGet();
         NettyInvokeRecord nettyInvokeRecord = new NettyInvokeRecord(clientId, group, invokeTaskId, paramContent);
 
-        if (register) {
-            TaskRegistry.getInstance().registerTask(nettyInvokeRecord);
-        }
+        TaskRegistry.getInstance().registerTask(nettyInvokeRecord);
 
         if (natClientType == NatClientType.NORMAL) {
             SekiroNatMessage proxyMessage = new SekiroNatMessage();
@@ -152,16 +150,11 @@ public class NatClient {
             timeOut = 15000;
         }
 
-        final NettyInvokeRecord nettyInvokeRecord = forwardInternal(requestJson.toJSONString(), true);
+        final NettyInvokeRecord nettyInvokeRecord = forwardInternal(requestJson.toJSONString());
         channel.eventLoop().schedule(new Runnable() {
             @Override
             public void run() {
-                if (TaskRegistry.getInstance().hasTaskAttached(nettyInvokeRecord.getClientId(), nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId())) {
-                    TaskRegistry.getInstance().forwardClientResponse(
-                            nettyInvokeRecord.getClientId(), nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId(),
-                            null
-                    );
-                }
+                TaskRegistry.getInstance().drop(nettyInvokeRecord);
             }
         }, timeOut, TimeUnit.MILLISECONDS);
 
@@ -211,8 +204,11 @@ public class NatClient {
 
 
     public void forward(String paramContent, Integer timeOut, HttpServletResponse httpServletResponse) {
-        NettyInvokeRecord nettyInvokeRecord = forwardInternal(paramContent, false);
+        NettyInvokeRecord nettyInvokeRecord = forwardInternal(paramContent);
         nettyInvokeRecord.waitCallback(timeOut);
+
+        TaskRegistry.getInstance().drop(nettyInvokeRecord);
+
         SekiroNatMessage sekiroNatMessage = nettyInvokeRecord.finalResult();
         if (sekiroNatMessage == null) {
             CommonRes<Object> timeout = CommonRes.failed("timeout");

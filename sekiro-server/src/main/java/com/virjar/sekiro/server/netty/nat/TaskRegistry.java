@@ -43,6 +43,16 @@ public class TaskRegistry {
         nettyInvokeRecord.notifyDataArrival(sekiroNatMessage);
     }
 
+    public void drop(NettyInvokeRecord nettyInvokeRecord) {
+        NettyInvokeRecord remove = doingTask.remove(genTaskItemKey(nettyInvokeRecord.getClientId(),
+                nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId())
+        );
+        if (remove == null) {
+            return;
+        }
+        remove.notifyDataArrival(null);
+    }
+
     public void cleanBefore(long before) {
 
         Set<String> needRemove = Sets.newHashSet();
