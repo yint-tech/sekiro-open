@@ -156,10 +156,12 @@ public class NatClient {
         channel.eventLoop().schedule(new Runnable() {
             @Override
             public void run() {
-                TaskRegistry.getInstance().forwardClientResponse(
-                        nettyInvokeRecord.getClientId(), nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId(),
-                        null
-                );
+                if (TaskRegistry.getInstance().hasTaskAttached(nettyInvokeRecord.getClientId(), nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId())) {
+                    TaskRegistry.getInstance().forwardClientResponse(
+                            nettyInvokeRecord.getClientId(), nettyInvokeRecord.getGroup(), nettyInvokeRecord.getTaskId(),
+                            null
+                    );
+                }
             }
         }, timeOut, TimeUnit.MILLISECONDS);
 
