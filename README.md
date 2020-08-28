@@ -1,9 +1,19 @@
 # sekiro
 
-# 黑名单
+## 黑名单
 sekiro测试网站没有提供任何防火墙防护。但是 https://sekiro.virjar.com/ 只是测试网站。方便各位用户提供测试接入。不提供线上服务功能。
 如果你希望使用我们系统的线上生产环境，可以走我们商务合作通道(wechat:datiao-world)。以下IP为违规IP，他们使用大量请求调用sekiro网站服务。导致sekiro服务器消耗
-封禁时间：2020-08-13
+
+### 封禁时间：2020-08-28
+```
+180.167.211.226 - - [28/Aug/2020:11:15:06 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
+180.167.211.226 - - [28/Aug/2020:11:15:07 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
+180.167.211.226 - - [28/Aug/2020:11:15:07 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
+180.167.211.226 - - [28/Aug/2020:11:15:07 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
+180.167.211.226 - - [28/Aug/2020:11:15:08 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
+```
+
+### 封禁时间：2020-08-13
 - 210.22.76.122
 - 47.89.31.20
 - 139.224.22.50
