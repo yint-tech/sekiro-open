@@ -4,19 +4,32 @@
 sekiro测试网站没有提供任何防火墙防护。但是 https://sekiro.virjar.com/ 只是测试网站。方便各位用户提供测试接入。不提供线上服务功能。
 如果你希望使用我们系统的线上生产环境，可以走我们商务合作通道(wechat:datiao-world)。以下IP为违规IP，他们使用大量请求调用sekiro网站服务。导致sekiro服务器消耗
 
-### 封禁时间：2020-08-28
+### 封禁时间 2020-09-06
 ```
+183.128.155.145 - - [06/Sep/2020:08:18:58 +0800] "GET /asyncInvoke?group=hubei&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.23.0" "-"
+183.128.155.145 - - [06/Sep/2020:08:18:59 +0800] "GET /asyncInvoke?group=hubei&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.23.0" "-"
+183.128.155.145 - - [06/Sep/2020:08:18:59 +0800] "GET /asyncInvoke?group=hubei&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.23.0" "-"
+183.128.155.145 - - [06/Sep/2020:08:18:59 +0800] "GET /asyncInvoke?group=hubei&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.23.0" "-"
+183.128.155.145 - - [06/Sep/2020:08:18:59 +0800] "GET /asyncInvoke?group=hubei&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.23.0" "-"
+```
+<details>
+<summary>历史封禁ip</summary>
+<h2>封禁时间：2020-08-28</h2>
+<pre>
 180.167.211.226 - - [28/Aug/2020:11:15:06 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
 180.167.211.226 - - [28/Aug/2020:11:15:07 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
 180.167.211.226 - - [28/Aug/2020:11:15:07 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
 180.167.211.226 - - [28/Aug/2020:11:15:07 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
 180.167.211.226 - - [28/Aug/2020:11:15:08 +0800] "GET /asyncInvoke?group=datagrand&action=getCookie HTTP/1.1" 200 1092 "-" "python-requests/2.22.0" "-"
-```
+</pre>
+<h3>封禁时间：2020-08-13</h3>
+<ol>
+    <li>210.22.76.122</li>
+    <li>47.89.31.20</li>
+    <li>139.224.22.50</li>
+</ol>
+</details>
 
-### 封禁时间：2020-08-13
-- 210.22.76.122
-- 47.89.31.20
-- 139.224.22.50
 
 SEKIRO 是一个 android 下的 API 服务暴露框架，可以用在 app 逆向、app 数据抓取、android 群控等场景。
 
