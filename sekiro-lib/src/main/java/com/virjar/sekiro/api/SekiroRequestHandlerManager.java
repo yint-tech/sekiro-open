@@ -8,7 +8,6 @@ import com.virjar.sekiro.api.databind.DirectMapGenerator;
 import com.virjar.sekiro.api.databind.EmptyARCreateHelper;
 import com.virjar.sekiro.api.databind.FieldBindGenerator;
 import com.virjar.sekiro.api.databind.ICRCreateHelper;
-import com.virjar.sekiro.log.SekiroLogger;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.utils.Defaults;
 
@@ -69,12 +68,13 @@ public class SekiroRequestHandlerManager {
             }
         }
 
-        try {
-            actionRequestHandlerGenerator.gen(sekiroRequest).handleRequest(sekiroRequest, sekiroResponse);
-        } catch (Throwable throwable) {
-            SekiroLogger.error("failed to generate action request handler", throwable);
-            sekiroResponse.failed(CommonRes.statusError, throwable);
-        }
+        HandlerThreadPool.post(sekiroRequest, sekiroResponse, actionRequestHandlerGenerator.gen(sekiroRequest));
+//        try {
+//            actionRequestHandlerGenerator.gen(sekiroRequest).handleRequest(sekiroRequest, sekiroResponse);
+//        } catch (Throwable throwable) {
+//            SekiroLogger.error("failed to generate action request handler", throwable);
+//            sekiroResponse.failed(CommonRes.statusError, throwable);
+//        }
     }
 
 
