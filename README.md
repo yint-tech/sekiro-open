@@ -4,6 +4,18 @@
 sekiro测试网站没有提供任何防火墙防护。但是 https://sekiro.virjar.com/ 只是测试网站。方便各位用户提供测试接入。不提供线上服务功能。
 如果你希望使用我们系统的线上生产环境，可以走我们商务合作通道(wechat:datiao-world)。以下IP为违规IP，他们使用大量请求调用sekiro网站服务。导致sekiro服务器消耗
 
+### 封禁时间 2020-10-023
+```
+115.199.248.162 - - [23/Oct/2020:12:58:44 +0800] "GET /asyncInvoke?group=hubeir330&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.22.0" "-"
+115.199.248.162 - - [23/Oct/2020:12:58:45 +0800] "GET /asyncInvoke?group=hubeir330&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.22.0" "-"
+115.199.248.162 - - [23/Oct/2020:12:58:45 +0800] "GET /asyncInvoke?group=hubeir330&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.22.0" "-"
+115.199.248.162 - - [23/Oct/2020:12:58:45 +0800] "GET /asyncInvoke?group=qgsl&action=getCookie HTTP/1.1" 200 260 "-" "python-requests/2.24.0" "-"
+115.199.248.162 - - [23/Oct/2020:12:58:45 +0800] "GET /asyncInvoke?group=hubeir330&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.22.0" "-"
+115.199.248.162 - - [23/Oct/2020:12:58:45 +0800] "GET /asyncInvoke?group=hubeir330&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.22.0" "-"
+115.199.248.162 - - [23/Oct/2020:12:58:46 +0800] "GET /asyncInvoke?group=qgsl&action=getCookie HTTP/1.1" 200 260 "-" "python-requests/2.24.0" "-"
+115.199.248.162 - - [23/Oct/2020:12:58:46 +0800] "GET /asyncInvoke?group=hubeir330&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.22.0" "-"
+```
+
 ### 封禁时间 2020-09-06
 ```
 183.128.155.145 - - [06/Sep/2020:08:18:58 +0800] "GET /asyncInvoke?group=hubei&action=getCookie HTTP/1.1" 200 560 "-" "python-requests/2.23.0" "-"
