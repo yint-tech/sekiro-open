@@ -7,7 +7,7 @@ sekiro测试网站没有提供任何防火墙防护。但是 https://sekiro.virj
 ## 交流群
 ![微信交流群](http://oss.virjar.com/ratel/sekiro-group.png)
 
-<a target="_blank" rel="noopener noreferrer" href="http://oss.virjar.com/ratel/sekiro-group.png"><img src="http://oss.virjar.com/ratel/sekiro-group.png" alt="微信交流群" data-canonical-src="http://oss.virjar.com/ratel/sekiro-group.png" style="max-width:100%;"></a>
+[<img src="http://oss.virjar.com/ratel/sekiro-group.png" alt="微信交流群" data-canonical-src="http://oss.virjar.com/ratel/sekiro-group.png" style="max-width:100%;">]
 
 
 ### 封禁时间 2020-10-023
