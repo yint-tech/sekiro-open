@@ -40,9 +40,10 @@ public class SekiroServerController {
         if (StringUtils.isBlank(group)) {
             return CommonRes.failed("the param:{group} not present");
         }
-        List<String> stringListMap = ChannelRegistry.getInstance().channelStatus(group);
+        Map<String, List<String>> stringListMap = ChannelRegistry.getInstance().channelStatus(group);
         return CommonRes.success(stringListMap);
     }
+
 
     @GetMapping("/groupList")
     @ResponseBody
@@ -55,6 +56,18 @@ public class SekiroServerController {
     @ResponseBody
     public CommonRes<?> disconnectClient(String group, String clientId) {
         return CommonRes.success(ChannelRegistry.getInstance().forceDisconnect(group, clientId));
+    }
+
+    @GetMapping("/disableClient")
+    @ResponseBody
+    public CommonRes<?> disableClient(String group, String clientId) {
+        return ChannelRegistry.getInstance().disable(group, clientId);
+    }
+
+    @GetMapping("/enableClient")
+    @ResponseBody
+    public CommonRes<?> enableClient(String group, String clientId) {
+        return ChannelRegistry.getInstance().enable(group, clientId);
     }
 
     @RequestMapping(value = "/invoke", method = {RequestMethod.GET, RequestMethod.POST})
@@ -125,7 +138,7 @@ public class SekiroServerController {
             natClient = ChannelRegistry.getInstance().allocateOne(group);
         }
         if (natClient == null) {
-            ReturnUtil.writeRes(httpServletResponse, ReturnUtil.failed("no device online"));
+            ReturnUtil.writeRes(httpServletResponse, ReturnUtil.failed("no enable device online"));
             return;
         }
         natClient.forward(requestJson.toJSONString(), timeOut, httpServletResponse);
