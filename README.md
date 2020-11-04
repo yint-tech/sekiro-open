@@ -300,6 +300,10 @@ clientId 用于区分不同手机，同一个接口可以部署在多个手机�
 
 invoke 接口定义比较宽泛，可支持 GET/POST,可支持 `application/x-www-form-urlencoded`和`application/json`,方便传入各种异构参数，不过大多数情况，Get 请求就足够使用。
 
+### 禁用/启用指定设备 /disableClient | /enableClient
+
+如果不想让服务器调度某个设备，可以使用该接口将指定设备踢出调度队列，当然也可以让其重新加入调度队列。
+
 ## client 接口
 
 之前多次展示 client 的 demo，这里讲诉一下 client 的食用姿势。

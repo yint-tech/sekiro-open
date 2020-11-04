@@ -86,13 +86,16 @@ public class ChannelRegistry {
         return null;
     }
 
-    public List<String> channelStatus(String group) {
+    public Map<String, List<String>> channelStatus(String group) {
+        Map<String, List<String>> clientStatus = Maps.newHashMap();
+        clientStatus.put("enable", Collections.<String>emptyList());
+        clientStatus.put("disable", Collections.<String>emptyList());
         if (group == null) {
-            return Collections.emptyList();
+            return clientStatus;
         }
         ClientGroup clientGroup = clientGroupMap.get(group);
         if (clientGroup == null) {
-            return Collections.emptyList();
+            return clientStatus;
         }
         Collection<NatClient> natClients = clientGroup.queue();
         List<String> clientVo = Lists.newArrayList();
@@ -101,7 +104,18 @@ public class ChannelRegistry {
                 clientVo.add(natClient.getClientId());
             }
         }
-        return clientVo;
+        clientStatus.put("enable", clientVo);
+
+        Collection<NatClient> disableNatClients = clientGroup.queueDisable();
+        List<String> disableClientVo = Lists.newArrayList();
+        for (NatClient natClient : disableNatClients) {
+            if (natClient.getCmdChannel() != null && natClient.getCmdChannel().isActive()) {
+                disableClientVo.add(natClient.getClientId());
+            }
+        }
+        clientStatus.put("disable", disableClientVo);
+
+        return clientStatus;
     }
 
 
@@ -118,6 +132,36 @@ public class ChannelRegistry {
             return CommonRes.failed("no group:{" + group + "}");
         }
         String errorMessage = clientGroup.disconnect(clientId);
+        if (errorMessage != null) {
+            return CommonRes.failed(errorMessage);
+        }
+        return CommonRes.success("ok");
+    }
+
+    public CommonRes<?> disable(String group, String clientId) {
+        if (group == null) {
+            return CommonRes.failed("need param:{group}");
+        }
+        ClientGroup clientGroup = clientGroupMap.get(group);
+        if (clientGroup == null) {
+            return CommonRes.failed("no group:{" + group + "}");
+        }
+        String errorMessage = clientGroup.disable(clientId);
+        if (errorMessage != null) {
+            return CommonRes.failed(errorMessage);
+        }
+        return CommonRes.success("ok");
+    }
+
+    public CommonRes<?> enable(String group, String clientId) {
+        if (group == null) {
+            return CommonRes.failed("need param:{group}");
+        }
+        ClientGroup clientGroup = clientGroupMap.get(group);
+        if (clientGroup == null) {
+            return CommonRes.failed("no group:{" + group + "}");
+        }
+        String errorMessage = clientGroup.enable(clientId);
         if (errorMessage != null) {
             return CommonRes.failed(errorMessage);
         }

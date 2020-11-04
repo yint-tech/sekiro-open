@@ -17,13 +17,14 @@ class ClientGroup {
     }
 
     private String group;
-    private Map<String, NatClient> natClientMap = Maps.newConcurrentMap();
+    private Map<String, NatClient> enableNatClientMap = Maps.newConcurrentMap();
+    private Map<String, NatClient> disableNatClientMap = Maps.newConcurrentMap();
 
     private LinkedList<String> poolQueue = new LinkedList<>();
 
     synchronized String disconnect(String clientId) {
-        NatClient natClient = natClientMap.get(clientId);
-        natClientMap.remove(clientId);
+        NatClient natClient = enableNatClientMap.get(clientId);
+        enableNatClientMap.remove(clientId);
         removeQueue(clientId);
         if (natClient == null) {
             return "no client: " + clientId;
@@ -33,20 +34,48 @@ class ClientGroup {
         return null;
     }
 
+    synchronized String disable(String clientId) {
+        NatClient natClient = enableNatClientMap.get(clientId);
+        if (natClient == null) {
+            return "enable not have the client: " + clientId;
+        }
+        disableNatClientMap.put(clientId, natClient);
+        enableNatClientMap.remove(clientId);
+        removeQueue(clientId);
+        return null;
+    }
+
+    synchronized String enable(String clientId) {
+        NatClient natClient = disableNatClientMap.get(clientId);
+        if (natClient == null) {
+            return "disable not have the client: " + clientId;
+        }
+        if (!natClient.getCmdChannel().isActive()) {
+            disableNatClientMap.remove(clientId);
+            return "client is not active: " + clientId;
+        }
+        log.info("enable a client :{} with channel:{} ", clientId, natClient.getCmdChannel());
+        enableNatClientMap.put(clientId, natClient);
+        disableNatClientMap.remove(clientId);
+        removeQueue(clientId);
+        poolQueue.add(clientId);
+        return null;
+    }
+
     //对象操作全部加锁，防止并发紊乱
     synchronized List<NatClient> queue() {
         List<NatClient> ret = Lists.newArrayListWithCapacity(poolQueue.size());
         // java.util.ConcurrentModificationException
         for (String key : Lists.newArrayList(poolQueue)) {
-            NatClient natClient = natClientMap.get(key);
+            NatClient natClient = enableNatClientMap.get(key);
             if (natClient == null) {
-                natClientMap.remove(key);
+                enableNatClientMap.remove(key);
                 removeQueue(key);
                 continue;
             }
             Channel cmdChannel = natClient.getCmdChannel();
             if (cmdChannel == null || !cmdChannel.isActive()) {
-                natClientMap.remove(key);
+                enableNatClientMap.remove(key);
                 removeQueue(key);
                 continue;
             }
@@ -55,13 +84,32 @@ class ClientGroup {
         return ret;
     }
 
+    synchronized List<NatClient> queueDisable() {
+        List<NatClient> ret = Lists.newArrayList();
+        // java.util.ConcurrentModificationException
+        for (String key : Lists.newArrayList(disableNatClientMap.keySet())) {
+            NatClient natClient = disableNatClientMap.get(key);
+            if (natClient == null) {
+                disableNatClientMap.remove(key);
+                continue;
+            }
+            Channel cmdChannel = natClient.getCmdChannel();
+            if (cmdChannel == null || !cmdChannel.isActive()) {
+                disableNatClientMap.remove(key);
+                continue;
+            }
+            ret.add(natClient);
+        }
+        return ret;
+    }
+
     synchronized NatClient getByClientId(String clientId) {
-        NatClient ret = natClientMap.get(clientId);
+        NatClient ret = enableNatClientMap.get(clientId);
         if (ret == null) {
             return null;
         }
         if (!ret.getCmdChannel().isActive()) {
-            natClientMap.remove(clientId);
+            enableNatClientMap.remove(clientId);
             removeQueue(clientId);
         }
         return ret;
@@ -75,16 +123,16 @@ class ClientGroup {
                 return null;
             }
 
-            NatClient natClient = natClientMap.get(poll);
+            NatClient natClient = enableNatClientMap.get(poll);
             if (natClient == null) {
                 continue;
             }
             if (natClient.getCmdChannel() == null) {
-                natClientMap.remove(poll);
+                enableNatClientMap.remove(poll);
                 continue;
             }
             if (!natClient.getCmdChannel().isActive()) {
-                natClientMap.remove(poll);
+                enableNatClientMap.remove(poll);
                 continue;
             }
             poolQueue.add(poll);
@@ -95,7 +143,7 @@ class ClientGroup {
 
 
     synchronized void registryClient(String client, Channel cmdChannel, NatClient.NatClientType natClientType) {
-        NatClient oldNatClient = natClientMap.get(client);
+        NatClient oldNatClient = enableNatClientMap.get(client);
 //        if (natClient != null) {
 //            Channel cmdChannelOld = natClient.getCmdChannel();
 //            if (cmdChannelOld != cmdChannel) {
@@ -109,7 +157,7 @@ class ClientGroup {
         if ((oldNatClient != null)) {
             natClient.migrateSeqGenerator(oldNatClient);
         }
-        natClientMap.put(client, natClient);
+        enableNatClientMap.put(client, natClient);
         removeQueue(client);
         poolQueue.add(client);
     }
