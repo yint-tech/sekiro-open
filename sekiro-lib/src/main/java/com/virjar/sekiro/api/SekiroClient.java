@@ -12,6 +12,7 @@ import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessageDecoder;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,6 +51,14 @@ public class SekiroClient {
         }
     }
 
+    public static SekiroClient startDefaultServer(String group) {
+        return start("sekiro.virjar.com", Constants.defaultNatServerPort, UUID.randomUUID().toString(), group);
+    }
+
+    public static SekiroClient startDefaultServer(String group, String clientID) {
+        return start("sekiro.virjar.com", Constants.defaultNatServerPort, clientID, group);
+    }
+
     public static SekiroClient start(String serverHost, final String clientID) {
         return start(serverHost, Constants.defaultNatServerPort, clientID, "default");
     }
@@ -73,13 +82,14 @@ public class SekiroClient {
      * @return 一个client控制器实例
      */
     public static SekiroClient start(String serverHost, int serverPort, final String clientID, String group) {
-        SekiroClient sekiroClient = allClient.get(serverHost + ":" + serverHost);
+        String key = serverHost + ":" + serverPort;
+        SekiroClient sekiroClient = allClient.get(key);
         if (sekiroClient == null) {
             synchronized (SekiroClient.class) {
-                sekiroClient = allClient.get(serverHost + ":" + serverHost);
+                sekiroClient = allClient.get(key);
                 if (sekiroClient == null) {
                     sekiroClient = new SekiroClient(serverHost, serverPort, clientID, group);
-                    allClient.put(serverHost + ":" + serverHost, sekiroClient);
+                    allClient.put(key, sekiroClient);
                 }
             }
         }
