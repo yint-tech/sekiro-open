@@ -5,7 +5,7 @@ sekiro测试网站没有提供任何防火墙防护。但是 https://sekiro.virj
 如果你希望使用我们系统的线上生产环境，可以走我们商务合作通道(wechat:datiao-world)。以下IP为违规IP，他们使用大量请求调用sekiro网站服务。导致sekiro服务器消耗
 
 ## 交流群
-[微信交流群-点击打开图片](http://oss.virjar.com/ratel/sekiro-group.png)
+[微信交流群-点击打开图片] (http://oss.virjar.com/ratel/sekiro-group.png)
 
 
 
