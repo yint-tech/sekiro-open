@@ -49,7 +49,7 @@ public class HandlerThreadPool {
     }
 
     public static void setMaxWorkSize(int maxWorkSize) {
-        if (maxWorkSize > 100 ) {
+        if (maxWorkSize > 100) {
             SekiroLogger.warn("the sekiro worker can not grater than 100");
             return;
         }
@@ -77,15 +77,13 @@ public class HandlerThreadPool {
 
 
     private static class TaskHolder {
-        SekiroRequest sekiroRequest;
-        SekiroResponse sekiroResponse;
-        SekiroRequestHandler sekiroRequestHandler;
+        TaskRunner taskRunner;
         long enqueueTimestamp;
+        SekiroResponse sekiroResponse;
 
-        public TaskHolder(SekiroRequest sekiroRequest, SekiroResponse sekiroResponse, SekiroRequestHandler sekiroRequestHandler) {
-            this.sekiroRequest = sekiroRequest;
+        public TaskHolder(TaskRunner taskRunner, SekiroResponse sekiroResponse) {
+            this.taskRunner = taskRunner;
             this.sekiroResponse = sekiroResponse;
-            this.sekiroRequestHandler = sekiroRequestHandler;
             enqueueTimestamp = System.currentTimeMillis();
         }
     }
@@ -119,13 +117,12 @@ public class HandlerThreadPool {
                 if (System.currentTimeMillis() - taskHolder.enqueueTimestamp
                         > maxWaitingSecond * 1000 || taskQueue.size() > maxPendingTaskSize
                 ) {
+                    SekiroLogger.warn("pending task size: " + taskQueue.size());
                     increaseWorker();
                 }
 
                 try {
-                    taskHolder.sekiroRequestHandler.handleRequest(
-                            taskHolder.sekiroRequest, taskHolder.sekiroResponse
-                    );
+                    taskHolder.taskRunner.run();
                 } catch (Throwable throwable) {
                     SekiroLogger.error("handle task", throwable);
                     taskHolder.sekiroResponse.failed(CommonRes.statusError, throwable);
@@ -156,18 +153,21 @@ public class HandlerThreadPool {
     private final Set<TaskExecutorThread> workers = new ConcurrentSet<>();
 
 
-    public static void post(SekiroRequest sekiroRequest, SekiroResponse sekiroResponse,
-                            SekiroRequestHandler sekiroRequestHandler) {
+    public static void post(TaskRunner taskRunner, SekiroResponse sekiroResponse) {
         instance.taskQueue.add(new TaskHolder(
-                sekiroRequest, sekiroResponse, sekiroRequestHandler
+                taskRunner, sekiroResponse
         ));
         if (instance.workers.size() < 2 || instance.taskQueue.size() > maxPendingTaskSize) {
             instance.increaseWorker();
         }
 
         if (instance.taskQueue.size() > 10) {
-            SekiroLogger.warn("too many pending task submit,please setup your custom thread pool!!");
+            SekiroLogger.warn("too many pending task submit,please setup your custom thread pool!! pending task size:" + instance.taskQueue.size());
         }
 
+    }
+
+    public interface TaskRunner {
+        void run();
     }
 }

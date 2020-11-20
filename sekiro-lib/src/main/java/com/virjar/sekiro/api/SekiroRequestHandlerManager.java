@@ -8,6 +8,7 @@ import com.virjar.sekiro.api.databind.DirectMapGenerator;
 import com.virjar.sekiro.api.databind.EmptyARCreateHelper;
 import com.virjar.sekiro.api.databind.FieldBindGenerator;
 import com.virjar.sekiro.api.databind.ICRCreateHelper;
+import com.virjar.sekiro.log.SekiroLogger;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.utils.Defaults;
 
@@ -30,18 +31,16 @@ import io.netty.channel.Channel;
 public class SekiroRequestHandlerManager {
     private static final String action = "action";
     private static final String actionList = "__actionList";
+    private static final String systemMessageServerTimeout = "__sekiro_system_timeout";
 
 
     private Map<String, ActionRequestHandlerGenerator> requestHandlerMap = new HashMap<>();
 
     private static final ConcurrentMap<Class, Field[]> fieldCache = new ConcurrentHashMap<>();
 
-
-    public void handleSekiroNatMessage(SekiroNatMessage sekiroNatMessage, Channel channel) {
-        SekiroRequest sekiroRequest = new SekiroRequest(sekiroNatMessage.getData(), sekiroNatMessage.getSerialNumber());
-        SekiroResponse sekiroResponse = new SekiroResponse(sekiroRequest, channel);
-
+    private void executeSekiroTask(final SekiroRequest sekiroRequest, final SekiroResponse sekiroResponse) {
         try {
+            // 这一步一般涉及到json的解析，高并发场景可能消耗cpu，所以从这里开始放到线程池处理
             sekiroRequest.getString("ensure mode parsed");
         } catch (Exception e) {
             sekiroResponse.failed(CommonRes.statusBadRequest, e);
@@ -61,20 +60,27 @@ public class SekiroRequestHandlerManager {
             if (action.equals(actionList)) {
                 TreeSet<String> sortedActionSet = new TreeSet<>(requestHandlerMap.keySet());
                 sekiroResponse.success(sortedActionSet);
-                return;
+            } else if (action.equals(systemMessageServerTimeout)) {
+                SekiroLogger.error("too many timeout task, please increase endpoint size or increase thread size config!!");
+                //do nothing,the sekiro server will close connection,and sekiro client will reconnect
             } else {
                 sekiroResponse.failed("unknown action: " + action);
-                return;
             }
+            return;
         }
+        actionRequestHandlerGenerator.gen(sekiroRequest).handleRequest(sekiroRequest, sekiroResponse);
+    }
 
-        HandlerThreadPool.post(sekiroRequest, sekiroResponse, actionRequestHandlerGenerator.gen(sekiroRequest));
-//        try {
-//            actionRequestHandlerGenerator.gen(sekiroRequest).handleRequest(sekiroRequest, sekiroResponse);
-//        } catch (Throwable throwable) {
-//            SekiroLogger.error("failed to generate action request handler", throwable);
-//            sekiroResponse.failed(CommonRes.statusError, throwable);
-//        }
+    public void handleSekiroNatMessage(SekiroNatMessage sekiroNatMessage, Channel channel) {
+        final SekiroRequest sekiroRequest = new SekiroRequest(sekiroNatMessage.getData(), sekiroNatMessage.getSerialNumber());
+        final SekiroResponse sekiroResponse = new SekiroResponse(sekiroRequest, channel);
+
+        HandlerThreadPool.post(new HandlerThreadPool.TaskRunner() {
+            @Override
+            public void run() {
+                executeSekiroTask(sekiroRequest, sekiroResponse);
+            }
+        }, sekiroResponse);
     }
 
 
