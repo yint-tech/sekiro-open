@@ -6,11 +6,13 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.netty.util.internal.ConcurrentSet;
 
 public class HandlerThreadPool {
     private static HandlerThreadPool instance;
+    private final static AtomicLong idSeed = new AtomicLong(0);
 
     static {
         instance = new HandlerThreadPool();
@@ -47,8 +49,13 @@ public class HandlerThreadPool {
     }
 
     public static void setMaxWorkSize(int maxWorkSize) {
-        if (maxWorkSize > 100) {
+        if (maxWorkSize > 100 ) {
             SekiroLogger.warn("the sekiro worker can not grater than 100");
+            return;
+        }
+
+        if (maxWorkSize < 2) {
+            SekiroLogger.warn("the sekiro worker can not less than 2");
             return;
         }
         HandlerThreadPool.maxWorkSize = maxWorkSize;
@@ -83,13 +90,11 @@ public class HandlerThreadPool {
         }
     }
 
-    private static long idSeed = 0;
 
     private class TaskExecutorThread extends Thread {
         public TaskExecutorThread() {
-            super("sekiro-worker-" + idSeed);
+            super("sekiro-worker-" + idSeed.getAndIncrement());
             setDaemon(true);
-            idSeed++;
             workers.add(this);
             start();
         }
@@ -147,8 +152,8 @@ public class HandlerThreadPool {
         new TaskExecutorThread();
     }
 
-    private BlockingQueue<TaskHolder> taskQueue = new LinkedBlockingQueue<>();
-    private Set<TaskExecutorThread> workers = new ConcurrentSet<>();
+    private final BlockingQueue<TaskHolder> taskQueue = new LinkedBlockingQueue<>();
+    private final Set<TaskExecutorThread> workers = new ConcurrentSet<>();
 
 
     public static void post(SekiroRequest sekiroRequest, SekiroResponse sekiroResponse,
