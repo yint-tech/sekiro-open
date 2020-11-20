@@ -12,6 +12,11 @@ public class ClientTimeHandler implements SekiroRequestHandler {
 
     @Override
     public void handleRequest(SekiroRequest sekiroRequest, SekiroResponse sekiroResponse) {
+        try {
+            Thread.sleep(10*1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         sekiroResponse.success("process: " + DemoApplication.getInstance().getPackageName() + " : now:" + System.currentTimeMillis() + " your param1:" + param1);
     }
 }
