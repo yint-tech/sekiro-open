@@ -149,7 +149,12 @@ http://sekiro.virjar.com/asyncInvoke?group=sekiro-demo&action=clientTime&param1=
 {"clientId":"2e77bbfa_869941041217576","data":"process: com.virjar.sekiro.demoapp : now:1570897005965 your param1:自定义参数","ok":true,"status":0}
 ```
 
-client demo 在`app-demo`子工程可以看到，直接运行 app-demo，即可在 sekiro.virjar.com 看到你的设备列表
+client demo 在`app-demo`子工程可以看到，直接运行 app-demo，即可在 sekiro.virjar.com 看到你的设备列表;
+
+客户端处理任务线程池默认最大线程数量为 16 个，可以根据需求通过 HandlerThreadPool.setMaxWorkSize(int maxWorkSize) 方法进行调整但最大限制为 100；
+多线程压测截图：
+![thread](deploy/Thread.png)
+
 
 # 在类似 xposed 的代码注入框架中使用 Sekiro
 

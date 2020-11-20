@@ -49,8 +49,13 @@ public class HandlerThreadPool {
     }
 
     public static void setMaxWorkSize(int maxWorkSize) {
-        if (maxWorkSize > 100) {
+        if (maxWorkSize > 100 ) {
             SekiroLogger.warn("the sekiro worker can not grater than 100");
+            return;
+        }
+
+        if (maxWorkSize < 2) {
+            SekiroLogger.warn("the sekiro worker can not less than 2");
             return;
         }
         HandlerThreadPool.maxWorkSize = maxWorkSize;
