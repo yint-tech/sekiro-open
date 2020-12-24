@@ -78,9 +78,10 @@ public class HttpRequestDispatcher extends SimpleChannelInboundHandler<FullHttpR
         //application/x-www-form-urlencoded
         //application/json
 
-        if (!"application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getMimeType())
-                && !"application/json".equalsIgnoreCase(contentType.getMimeType())) {
-            String errorMessage = "sekiro framework only support contentType:application/x-www-form-urlencoded | application/json, now is: " + contentType.getMimeType();
+        String mimeType = contentType.getMimeType();
+        if (!"application/x-www-form-urlencoded".equalsIgnoreCase(mimeType)
+                && !"application/json".equalsIgnoreCase(mimeType)) {
+            String errorMessage = "sekiro framework only support contentType:application/x-www-form-urlencoded | application/json, now is: " + mimeType;
             DefaultHtmlHttpResponse contentTypeNotSupportMessage = new DefaultHtmlHttpResponse(errorMessage);
 
             Channel channel = channelHandlerContext.channel();

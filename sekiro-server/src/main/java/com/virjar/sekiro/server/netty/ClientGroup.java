@@ -154,7 +154,7 @@ class ClientGroup {
 //        }
         log.info("register a client :{} with channel:{} ", client, cmdChannel);
         NatClient natClient = new NatClient(client, group, cmdChannel, natClientType);
-        if ((oldNatClient != null)) {
+        if (oldNatClient != null) {
             natClient.migrateSeqGenerator(oldNatClient);
         }
         enableNatClientMap.put(client, natClient);
@@ -163,6 +163,7 @@ class ClientGroup {
     }
 
     private void removeQueue(String clientId) {
-        while (poolQueue.remove(clientId)) ;
+        while (poolQueue.remove(clientId)) {
+        }
     }
 }
