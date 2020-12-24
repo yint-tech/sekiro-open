@@ -46,7 +46,6 @@ public class NatClient {
 
     @Getter
     private String group;
-
     @Getter
     private String clientId;
     @Getter
