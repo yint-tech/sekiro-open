@@ -50,3 +50,5 @@ container-builder-repkg/src/main/resources/ratel_engine.properties
 container-builder-repkg/src/main/resources/dex_maker_opt.zip
 
 logs/
+
+sekiro-server/build.gradle
