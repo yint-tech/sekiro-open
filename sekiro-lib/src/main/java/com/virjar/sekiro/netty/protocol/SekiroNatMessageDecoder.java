@@ -55,12 +55,22 @@ public class SekiroNatMessageDecoder extends ByteToMessageDecoder {
                     ctx.channel().close();
                     return;
                 }
+
                 if (dataLength > 0) {
                     byte[] data = new byte[dataLength];
                     in.readBytes(data);
+//                    CompressUtil.Extra extra = CompressUtil.parseContextType(sekiroNatMessage.getExtra());
+//                    if (CompressUtil.canCompress(extra)) {
+//                        CompressUtil.CompressResponse uncompress = CompressUtil.uncompress(data);
+//                        sekiroNatMessage.setData(uncompress.getSrc());
+////                      // 替换实际的context type
+//                        sekiroNatMessage.setExtra(extra.getContextType());
+//                        SekiroLogger.info("use uncompress before length "
+//                                + data.length + " after length " + uncompress.getSrc().length);
+//                    } else {
                     sekiroNatMessage.setData(data);
+                    // }
                 }
-
                 out.add(sekiroNatMessage);
                 // in.release();
             } catch (Exception e) {

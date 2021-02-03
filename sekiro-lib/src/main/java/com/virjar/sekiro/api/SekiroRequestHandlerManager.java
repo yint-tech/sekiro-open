@@ -1,6 +1,5 @@
 package com.virjar.sekiro.api;
 
-import android.text.TextUtils;
 
 import com.virjar.sekiro.api.databind.ActionRequestHandlerGenerator;
 import com.virjar.sekiro.api.databind.AutoBind;
@@ -11,6 +10,7 @@ import com.virjar.sekiro.api.databind.ICRCreateHelper;
 import com.virjar.sekiro.log.SekiroLogger;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.utils.Defaults;
+import com.virjar.sekiro.utils.TextUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -33,6 +33,11 @@ public class SekiroRequestHandlerManager {
     private static final String actionList = "__actionList";
     private static final String systemMessageServerTimeout = "__sekiro_system_timeout";
 
+    private SekiroClient sekiroClient;
+
+    public SekiroRequestHandlerManager(SekiroClient sekiroClient) {
+        this.sekiroClient = sekiroClient;
+    }
 
     private Map<String, ActionRequestHandlerGenerator> requestHandlerMap = new HashMap<>();
 
@@ -49,7 +54,7 @@ public class SekiroRequestHandlerManager {
 
         String action = sekiroRequest.getString(SekiroRequestHandlerManager.action);
 
-        if (TextUtils.isEmpty(action)) {
+        if (TextUtil.isEmpty(action)) {
             sekiroResponse.failed("the param:{" + SekiroRequestHandlerManager.action + "} not present");
             return;
         }
@@ -72,8 +77,8 @@ public class SekiroRequestHandlerManager {
     }
 
     public void handleSekiroNatMessage(SekiroNatMessage sekiroNatMessage, Channel channel) {
-        final SekiroRequest sekiroRequest = new SekiroRequest(sekiroNatMessage.getData(), sekiroNatMessage.getSerialNumber());
-        final SekiroResponse sekiroResponse = new SekiroResponse(sekiroRequest, channel);
+        final SekiroRequest sekiroRequest = new SekiroRequest(sekiroNatMessage.getData(), sekiroNatMessage.getSerialNumber(), sekiroClient);
+        final SekiroResponse sekiroResponse = new SekiroResponse(sekiroRequest, channel, sekiroClient);
 
         HandlerThreadPool.post(new HandlerThreadPool.TaskRunner() {
             @Override
@@ -85,7 +90,7 @@ public class SekiroRequestHandlerManager {
 
 
     public void registerHandler(String action, SekiroRequestHandler sekiroRequestHandler) {
-        if (TextUtils.isEmpty(action)) {
+        if (TextUtil.isEmpty(action)) {
             throw new IllegalArgumentException("action empty!!");
         }
         if (requestHandlerMap.containsKey(action)) {

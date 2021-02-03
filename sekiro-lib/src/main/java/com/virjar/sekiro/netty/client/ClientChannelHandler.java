@@ -41,7 +41,7 @@ public class ClientChannelHandler extends SimpleChannelInboundHandler<SekiroNatM
         Channel cmdChannel = sekiroClient.getCmdChannel();
         if (cmdChannel == ctx.channel()) {
             SekiroLogger.warn("channel inactive ,reconnect to nat server");
-            sekiroClient.connectNatServer();
+            sekiroClient.callOnClientDisConnected();
         }
     }
 

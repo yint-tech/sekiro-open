@@ -16,9 +16,27 @@ public class SekiroRequest {
 
     private long serialNo;
 
+    private SekiroClient sekiroClient;
+
     public SekiroRequest(byte[] requestData, long serialNo) {
+        this(requestData, serialNo, null);
+    }
+
+    public SekiroRequest(byte[] requestData, long serialNo, SekiroClient sekiroClient) {
         this.requestData = requestData;
         this.serialNo = serialNo;
+        this.sekiroClient = sekiroClient;
+    }
+
+    public SekiroClient getSekiroClient() {
+        return sekiroClient;
+    }
+
+    public Object getExtent(String key) {
+        if (sekiroClient == null) {
+            return null;
+        }
+        return sekiroClient.getExtend(key);
     }
 
     private Multimap nameValuePairsModel;

@@ -1,7 +1,5 @@
 package com.virjar.sekiro.netty.protocol;
 
-import com.virjar.sekiro.Constants;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;

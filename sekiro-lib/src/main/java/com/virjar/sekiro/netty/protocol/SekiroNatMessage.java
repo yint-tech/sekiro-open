@@ -1,6 +1,12 @@
 package com.virjar.sekiro.netty.protocol;
 
+import com.virjar.sekiro.Constants;
+import com.virjar.sekiro.log.SekiroLogger;
+
 import java.util.Arrays;
+
+import external.com.alibaba.fastjson.JSONException;
+import external.com.alibaba.fastjson.JSONObject;
 
 /**
  * 代理客户端与代理服务器消息交换协议
@@ -98,5 +104,30 @@ public class SekiroNatMessage {
         return "ProxyMessage [type=" + type + ", serialNumber=" + serialNumber + ", extra=" + extra + ", data=" + Arrays.toString(data) + "]";
     }
 
+    // and for json format extra extension
+    private JSONObject extraJson = null;
 
+    public JSONObject getExtraJson() {
+        if (extraJson != null) {
+            return extraJson;
+        }
+        //generate json container
+        if (type != TYPE_INVOKE) {
+            return null;
+        }
+        extra = extra.trim();
+        if (!extra.startsWith("{")) {
+            extraJson = new JSONObject();
+            extraJson.put(Constants.contentType, extra);
+            return extraJson;
+        }
+        try {
+            extraJson = JSONObject.parseObject(extra);
+        } catch (JSONException e) {
+            SekiroLogger.warn("the extra maybe a json content,but decode failed", e);
+            extraJson = new JSONObject();
+            extraJson.put(Constants.contentType, extra);
+        }
+        return extraJson;
+    }
 }

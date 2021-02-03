@@ -30,4 +30,7 @@ public interface Constants {
     AttributeKey<String> GROUP_KEY = AttributeKey.newInstance("goup_key");
 
     int protocolMagic = 5597;
+
+    String compressMethod = "CompressMethod";
+    String contentType = "contentType";
 }

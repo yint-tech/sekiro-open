@@ -33,7 +33,7 @@ public class ClientIdleCheckHandler extends IdleStateHandler {
     }
 
     private void handleIdle(ChannelHandlerContext ctx, IdleStateEvent evt) {
-        SekiroLogger.info("idle event:" + evt.state());
+        SekiroLogger.info("idle event:" + evt.state() + " connectionInfo:" + sekiroClient.getSekiroConnectDescription());
         if (IdleStateEvent.FIRST_WRITER_IDLE_STATE_EVENT == evt) {
             SekiroLogger.info("write idle, write a heartbeat message to server");
             SekiroNatMessage sekiroNatMessage = new SekiroNatMessage();

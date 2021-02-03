@@ -1,19 +1,23 @@
 package com.virjar.sekiro.api;
 
 
-import android.text.TextUtils;
-
 import com.virjar.sekiro.Constants;
+import com.virjar.sekiro.api.compress.Compressor;
+import com.virjar.sekiro.api.compress.EmptyCompressor;
+import com.virjar.sekiro.api.compress.GzipCompressor;
 import com.virjar.sekiro.log.SekiroLogger;
 import com.virjar.sekiro.netty.client.ClientChannelHandler;
 import com.virjar.sekiro.netty.client.ClientIdleCheckHandler;
 import com.virjar.sekiro.netty.protocol.SekiroMessageEncoder;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessage;
 import com.virjar.sekiro.netty.protocol.SekiroNatMessageDecoder;
+import com.virjar.sekiro.utils.TextUtil;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,22 +35,29 @@ public class SekiroClient {
     private int serverPort;
     private String clientId;
     private String group = "default";
+    private String sekiroConnectDescription;
 
     private AtomicBoolean isStartUp = new AtomicBoolean(false);
+    private Compressor compressor = new EmptyCompressor();
 
     private static Map<String, SekiroClient> allClient = new ConcurrentHashMap<>();
 
-    private SekiroRequestHandlerManager sekiroRequestHandlerManager = new SekiroRequestHandlerManager();
+    private SekiroRequestHandlerManager sekiroRequestHandlerManager = new SekiroRequestHandlerManager(this);
+
+    private Map<String, Object> context = new ConcurrentHashMap<>();
 
 
     private SekiroClient(String serverHost, int serverPort, String clientId, String group) {
+        sekiroConnectDescription = "apiEntry: (" + serverHost + ":" + serverPort + ")"
+                + " group:" + group + "   clientId:" + clientId;
+        SekiroLogger.info("create sekiro client," + sekiroConnectDescription);
         this.serverHost = serverHost;
         this.serverPort = serverPort;
         //@ 是一个hermes保留分隔符
         clientId = clientId.replaceAll("@", "_");
         this.clientId = clientId;
         this.group = group;
-        if (TextUtils.isEmpty(group)) {
+        if (TextUtil.isEmpty(group)) {
             this.group = "default";
         }
     }
@@ -82,7 +93,8 @@ public class SekiroClient {
      * @return 一个client控制器实例
      */
     public static SekiroClient start(String serverHost, int serverPort, final String clientID, String group) {
-        String key = serverHost + ":" + serverPort;
+        String key = serverHost + ":" + serverPort + ":" + group + ":" + clientID;
+        SekiroLogger.info("sekiro client start task:" + key);
         SekiroClient sekiroClient = allClient.get(key);
         if (sekiroClient == null) {
             synchronized (SekiroClient.class) {
@@ -99,10 +111,11 @@ public class SekiroClient {
 
     private Bootstrap natClientBootstrap;
 
+    public static NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+
     private void startInternal() {
         if (isStartUp.compareAndSet(false, true)) {
             natClientBootstrap = new Bootstrap();
-            NioEventLoopGroup workerGroup = new NioEventLoopGroup();
 
             natClientBootstrap.group(workerGroup);
             natClientBootstrap.channel(NioSocketChannel.class);
@@ -139,7 +152,7 @@ public class SekiroClient {
             isConnecting = false;
         }
         group = newGroup;
-        if (TextUtils.isEmpty(group)) {
+        if (TextUtil.isEmpty(group)) {
             this.group = "default";
         }
         connectNatServer();
@@ -149,7 +162,33 @@ public class SekiroClient {
     private Channel cmdChannel = null;
     private volatile boolean isConnecting = false;
 
+    public boolean isDestroyed() {
+        return destroyed;
+    }
+
+    private volatile boolean destroyed = false;
+
+    /**
+     * 销毁客户端
+     */
+    public synchronized void destroyClient() {
+        if (destroyed) {
+            return;
+        }
+        SekiroLogger.info("client: " + sekiroConnectDescription + " destroy");
+        callOnClientDestroy();
+        destroyed = true;
+        Channel cmdChannelCopy = cmdChannel;
+        if (cmdChannelCopy != null && cmdChannelCopy.isActive()) {
+            cmdChannelCopy.close();
+        }
+    }
+
+
     public synchronized void connectNatServer() {
+        if (destroyed) {
+            return;
+        }
         Channel cmdChannelCopy = cmdChannel;
         if (cmdChannelCopy != null && cmdChannelCopy.isActive()) {
             return;
@@ -192,6 +231,7 @@ public class SekiroClient {
                             sekiroNatMessage.setType(SekiroNatMessage.C_TYPE_REGISTER);
                             sekiroNatMessage.setExtra(clientId + "@" + group);
                             cmdChannel.writeAndFlush(sekiroNatMessage);
+                            callOnClientConnected();
                         }
                     }
                 });
@@ -232,5 +272,96 @@ public class SekiroClient {
 
     public SekiroRequestHandlerManager getSekiroRequestHandlerManager() {
         return sekiroRequestHandlerManager;
+    }
+
+    public Compressor getCompressor() {
+        return compressor;
+    }
+
+    public SekiroClient setCompressor(Compressor compressor) {
+        //开源版本sekiro不支持流量压缩，就算进行压缩，服务器也不支持解码
+        throw new UnsupportedOperationException("can not set compressor for open source version");
+    }
+
+    public String getSekiroConnectDescription() {
+        return sekiroConnectDescription;
+    }
+
+    public Object getExtend(String key) {
+        return context.get(key);
+    }
+
+    public SekiroClient setExtend(String key, Object obj) {
+        context.put(key, obj);
+        return this;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+
+    private Set<SekiroClientListener> lifeCycleListener = new CopyOnWriteArraySet<>();
+
+    public SekiroClient addSekiroClientListener(SekiroClientListener sekiroClientListener) {
+        lifeCycleListener.add(sekiroClientListener);
+        return this;
+    }
+
+    private void callOnClientDestroy() {
+        it4Listener(new Consumer<SekiroClientListener>() {
+            @Override
+            public void accept(SekiroClientListener sekiroClientListener) {
+                sekiroClientListener.onClientDestroy(SekiroClient.this);
+            }
+        });
+    }
+
+
+    private void callOnClientConnected() {
+        it4Listener(new Consumer<SekiroClientListener>() {
+            @Override
+            public void accept(SekiroClientListener sekiroClientListener) {
+                sekiroClientListener.onClientConnected(SekiroClient.this);
+            }
+        });
+    }
+
+
+    public void callOnClientDisConnected() {
+        it4Listener(new Consumer<SekiroClientListener>() {
+            @Override
+            public void accept(SekiroClientListener sekiroClientListener) {
+                sekiroClientListener.onClientDisConnected(SekiroClient.this);
+            }
+        });
+        connectNatServer();
+    }
+
+
+    private void it4Listener(Consumer<SekiroClientListener> consumer) {
+        for (SekiroClientListener sekiroClientListener : lifeCycleListener) {
+            try {
+                consumer.accept(sekiroClientListener);
+            } catch (Exception e) {
+                SekiroLogger.error("call listener failed:", e);
+            }
+        }
+    }
+
+    private interface Consumer<T> {
+        void accept(T t);
+    }
+
+    public interface SekiroClientListener {
+        void onClientDestroy(SekiroClient sekiroClient);
+
+        void onClientConnected(SekiroClient sekiroClient);
+
+        void onClientDisConnected(SekiroClient sekiroClient);
     }
 }
