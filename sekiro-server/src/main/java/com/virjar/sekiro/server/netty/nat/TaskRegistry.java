@@ -23,7 +23,7 @@ public class TaskRegistry {
     }
 
     private String genTaskItemKey(String clientId, String group, long seq) {
-        return clientId + "---" + clientId + "---" + seq;
+        return group + "---" + clientId + "---" + seq;
     }
 
     public synchronized void registerTask(NettyInvokeRecord nettyInvokeRecord) {
