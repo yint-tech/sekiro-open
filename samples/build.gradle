@@ -1,6 +1,4 @@
 apply plugin: 'java-library'
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
