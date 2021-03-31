@@ -40,6 +40,10 @@ allprojects {
             name "aliyunGoogle"
             url "https://maven.aliyun.com/repository/google"
         }
+        maven {
+            name "IntMaven"
+            url "http://nexus.virjar.com/repository/maven-public/"
+        }
         maven { url "https://jitpack.io" }
     }
 }
