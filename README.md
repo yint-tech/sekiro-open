@@ -9,6 +9,8 @@
 ## 开源版文档入口
 [开源版](open-source-doc/README.md)
 
+## 答问：Sekiro和NanoHttp的区别
+[关于Sekiro和http转发的优势](qa_for_http_plan.md)
 
 # 多项目友情链接(商务合作+v: virjar1 )
 
