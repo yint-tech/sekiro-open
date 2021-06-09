@@ -5,6 +5,7 @@
     <groupId>com.virjar.sekiro.business</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>samples</artifactId>
+    <version>1.0</version>
     <dependencies>
         <dependency>
             <groupId>com.virjar.sekiro.business</groupId>
