@@ -97,7 +97,9 @@ public class ChannelTypeInvokerHttp extends SimpleChannelInboundHandler<FullHttp
             return;
         }
 
-        if (StringUtils.equalsAnyIgnoreCase(urlPath, "/business-demo/mock-allocate")) {
+        if (StringUtils.equalsAnyIgnoreCase(urlPath, "/business-demo/mock-allocate")
+                || StringUtils.equalsAnyIgnoreCase(urlPath, "/sekiro-api/sekiro-server/allocate")
+        ) {
             handleMockAllocate(requestJson);
             return;
         }
