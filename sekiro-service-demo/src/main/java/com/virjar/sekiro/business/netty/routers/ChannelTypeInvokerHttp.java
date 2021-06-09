@@ -99,6 +99,7 @@ public class ChannelTypeInvokerHttp extends SimpleChannelInboundHandler<FullHttp
 
         if (StringUtils.equalsAnyIgnoreCase(urlPath, "/business-demo/mock-allocate")) {
             handleMockAllocate(requestJson);
+            return;
         }
 
         if (StringUtils.equalsAnyIgnoreCase(urlPath, "/favicon.ico")) {
