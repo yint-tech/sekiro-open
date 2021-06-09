@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>sekiro-parent</artifactId>
-        <groupId>com.virjar.sekiro.business</groupId>
-        <version>1.0.0</version>
-    </parent>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <groupId>com.virjar.sekiro.business</groupId>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>samples</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.virjar.sekiro.business</groupId>
             <artifactId>sekiro-business-api</artifactId>
-            <version>1.0</version>
+            <version>1.2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

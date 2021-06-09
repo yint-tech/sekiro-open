@@ -4,7 +4,6 @@ package com.virjar.sekiro.api;
 import com.virjar.sekiro.Constants;
 import com.virjar.sekiro.api.compress.Compressor;
 import com.virjar.sekiro.api.compress.EmptyCompressor;
-import com.virjar.sekiro.api.compress.GzipCompressor;
 import com.virjar.sekiro.log.SekiroLogger;
 import com.virjar.sekiro.netty.client.ClientChannelHandler;
 import com.virjar.sekiro.netty.client.ClientIdleCheckHandler;
@@ -48,6 +47,10 @@ public class SekiroClient {
 
 
     private SekiroClient(String serverHost, int serverPort, String clientId, String group) {
+        SekiroLogger.warn("版本已经过期，开源版版本sekiro请使用开源demo server版本替换:\n" +
+                "开源版本代码太丑陋，且容易出现性能问题，目前已经停止维护\n" +
+                "请参考如下github文档，完成到demo版本的迁移\n" +
+                "https://github.com/virjar/sekiro");
         sekiroConnectDescription = "apiEntry: (" + serverHost + ":" + serverPort + ")"
                 + " group:" + group + "   clientId:" + clientId;
         SekiroLogger.info("create sekiro client," + sekiroConnectDescription);

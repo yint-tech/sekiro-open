@@ -2,7 +2,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.virjar.sekiro.business:sekiro-business-api:1.0'
+    api 'com.virjar.sekiro.business:sekiro-business-api:1.2'
 }
 
 sourceCompatibility = "8"

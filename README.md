@@ -7,7 +7,15 @@
 [商业版](doc/readme.md)
 
 ## 开源版文档入口
-[开源版](open-source-doc/README.md)
+注意，老一代的开源版（2019/10/08 - 2021/04/14）已经推出历史舞台，这是由于他的代码质量是在太差。
+
+目前开源版使用商业fork的demo版本替代 [sekiro-service-demo](sekiro-service-demo),demo版本目前在保证代码质量更高的情况下，
+拥有比开源版更加完善的功能。如：压缩、调度策略、单一端口、多通道等,
+
+demo版使用和商业版使用一致的客户端API
+
+[开源版本搭建和使用文档直通车](doc/3.demo_server.md)
+
 
 ## 答问：Sekiro和NanoHttp的区别
 [关于Sekiro和http转发的优势](qa_for_http_plan.md)
@@ -20,7 +28,7 @@
 |sekiro|基于长链接和代码注入的Android private API暴露框架|https://github.com/virjar/sekiro|
 |ratel|Android重打包注入引擎|https://git.virjar.com/ratel/ratel-doc|
 |zelda|app多开分身的另一种实现|https://github.com/virjar/zelda|
-|geeEtacsufbo|极验滑块js代码脱壳-js控制流平坦化反混淆(最早使用AST解除JS流程混淆的项目)|https://github.com/virjar|
+|geeEtacsufbo|极验滑块js代码脱壳-js控制流平坦化反混淆(最早使用AST解除JS流程混淆的项目)|https://github.com/virjar/geeEtacsufbo|
 |thanos|java爬虫调度系统，让java爬虫重回巅峰！！(开发中)|https://github.com/virjar/thanos|
 
 

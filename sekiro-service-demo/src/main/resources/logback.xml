@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+
+    <!-- 保存路径-->
+    <property name="logDir" value="./logs/"/>
+    <!-- 保存日志天数-->
+    <property name="maxHistory" value="3"/>
+
+    <property name="errorMaxHistory" value="30"/>
+    <!-- 项目名-->
+    <property name="projectName" value="sekiro-business-demo"/>
+
+    <property name="normal-pattern"
+        value="[%d [%t] %5p %c{50}:%L]  %m%n"/>
+
+
+    <appender name="Sekiro" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <key>sekiroGroup</key>
+            <defaultValue>commom-logs</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="rolling" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <File>${logDir}/${projectName}/groups/${sekiroGroup}/sekiro.log</File>
+                <encoder>
+                    <pattern>${normal-pattern}</pattern>
+                </encoder>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <fileNamePattern>${logDir}/${projectName}/groups/${sekiroGroup}/sekiro-%d{yyyy-MM-dd}.zip
+                    </fileNamePattern>
+                    <maxHistory>${maxHistory}</maxHistory>
+                </rollingPolicy>
+            </appender>
+
+        </sift>
+    </appender>
+    <!-- 异步输出 -->
+    <appender name="asyncSekiro" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>100</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>512</queueSize>
+        <appender-ref ref="Sekiro"/>
+    </appender>
+
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDir}/${projectName}/${projectName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logDir}/${projectName}/${projectName}-%d{yyyy-MM-dd}.zip</fileNamePattern>
+            <maxHistory>${maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${normal-pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${logDir}/${projectName}/${projectName}-error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logDir}/${projectName}/${projectName}-error-%d{yyyy-MM-dd}.zip</fileNamePattern>
+            <maxHistory>${errorMaxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${normal-pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="Sekiro" level="INFO" additivity="false">
+        <appender-ref ref="asyncSekiro"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR"/>
+    </root>
+
+</configuration>
