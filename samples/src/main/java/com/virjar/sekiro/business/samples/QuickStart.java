@@ -10,8 +10,8 @@ import java.util.UUID;
 
 public class QuickStart {
     public static void main(String[] args) {
-        // https://sekiro.virjar.com/business/invoke?group=test&action=test&param=testparm
-        new SekiroClient("test", UUID.randomUUID().toString()).setupSekiroRequestInitializer((sekiroRequest, handlerRegistry) ->
+        // https://sekiro.virjar.com/business/invoke?group=sample-test&action=test&param=testparm
+        new SekiroClient("sample-test", UUID.randomUUID().toString()).setupSekiroRequestInitializer((sekiroRequest, handlerRegistry) ->
 
                 //注册handler
                 handlerRegistry.registerSekiroHandler(new ActionHandler() {
@@ -41,9 +41,9 @@ public class QuickStart {
                 // 启动SekiroClient
                 .start();
 
-        // https://sekiro.virjar.com/business/invoke?group=test&action=test&param=testparm
+        // https://sekiro.virjar.com/business/invoke?group=sample-test&action=test&param=testparm
 
-        // group为刚刚设置的test
+        // group为刚刚设置的sample-test
         // action为刚刚设置的test
         // param=testparm 给参数字段param赋值：testparm
         // sekiro_token ：后台设置的鉴权token，没有token其他用户无法随便访问
