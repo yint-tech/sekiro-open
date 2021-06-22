@@ -14,7 +14,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile rootProject.file('open-source-doc/deploy/hermes_key')
+            storeFile rootProject.file('doc/hermes_key')
             storePassword "hermes"
             keyAlias "hermes"
             keyPassword "hermes"

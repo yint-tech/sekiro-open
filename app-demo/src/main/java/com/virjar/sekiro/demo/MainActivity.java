@@ -7,10 +7,6 @@ import android.text.TextUtils;
 import android.widget.TextView;
 
 import com.virjar.sekiro.api.SekiroClient;
-import com.virjar.sekiro.api.SekiroRequest;
-import com.virjar.sekiro.api.SekiroRequestHandler;
-import com.virjar.sekiro.api.SekiroResponse;
-import com.virjar.sekiro.api.databind.AutoBind;
 import com.virjar.sekiro.demo.handlers.ClientTimeHandler;
 import com.virjar.sekiro.demoapp.R;
 

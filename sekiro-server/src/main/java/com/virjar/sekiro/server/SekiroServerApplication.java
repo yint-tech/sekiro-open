@@ -14,6 +14,10 @@ public class SekiroServerApplication extends SpringBootServletInitializer {
                 "开源版本代码太丑陋，且容易出现性能问题，目前已经停止维护\n" +
                 "请参考如下github文档，完成到demo版本的迁移\n" +
                 "https://github.com/virjar/sekiro");
+
+        System.out.println("!!! 非常重要 !!! 当前版本将会在2021年7月31日之后正式下线，届时当前工程将会被销毁," +
+                "且docker镜像将会无法拉取当前镜像。请各位用户尽快完成新版本Sekiro迁移");
+        System.out.println("未完成迁移的，依然可以保持当前系统的使用，但是无法获取到使用支持，以及无法通过官方docker完成新服务器安装");
         SpringApplication.run(SekiroServerApplication.class, args);
     }
 

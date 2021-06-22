@@ -2,5 +2,6 @@
     <string name="app_name">sekiro-demo</string>
     <string name="latitude">latitude</string>
     <string name="longitude">longitude</string>
+    <string name="outdate">当前版本已经过期，请参考samples项目</string>
     <string name="accessibility_service_description">应用自动安装服务</string>
 </resources>
