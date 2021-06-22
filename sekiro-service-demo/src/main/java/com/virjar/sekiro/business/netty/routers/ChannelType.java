@@ -1,15 +1,26 @@
 package com.virjar.sekiro.business.netty.routers;
 
+import com.virjar.sekiro.business.api.core.SekiroFastJson;
 import com.virjar.sekiro.business.api.fastjson.JSONObject;
 import com.virjar.sekiro.business.api.protocol.SekiroPacket;
 import com.virjar.sekiro.business.api.protocol.SekiroPacketType;
 import com.virjar.sekiro.business.api.util.Constants;
+import com.virjar.sekiro.business.netty.buffer.Unpooled;
 import com.virjar.sekiro.business.netty.channel.Channel;
+import com.virjar.sekiro.business.netty.channel.ChannelFuture;
+import com.virjar.sekiro.business.netty.channel.ChannelFutureListener;
+import com.virjar.sekiro.business.netty.handler.codec.http.*;
+import com.virjar.sekiro.business.netty.http.ContentType;
+import com.virjar.sekiro.business.netty.http.HttpNettyUtil;
 import com.virjar.sekiro.business.netty.routers.client.InvokeRecord;
 import com.virjar.sekiro.business.netty.util.AttributeKey;
 import com.virjar.sekiro.business.netty.util.CommonRes;
+import org.apache.commons.lang3.StringUtils;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+
+import static com.virjar.sekiro.business.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
 
 /**
  * 按照sekiro业务划分，存在如下5种连接类型，他们占用同一个端口，用在不同业务下
@@ -49,9 +60,90 @@ public enum ChannelType {
     },
     // http调用通道，对于python等其他异构语言，可以通过标准的http协议调用只狼服务，请注意http需要保持keepAlive，减少tcp连接通道建立开销
     INVOKER_HTTP(1) {
+        private void writeSekiroPacket(Channel channel, SekiroPacket sekiroPacket, InvokeRecord invokeRecord) {
+            String contentType = sekiroPacket.getHeader(Constants.PAYLOAD_CONTENT_TYPE.PAYLOAD_CONTENT_TYPE);
+            if (Constants.PAYLOAD_CONTENT_TYPE.CONTENT_TYPE_SEKIRO_FAST_JSON.equals(contentType)) {
+                // 内部快速反序列化，可以避免服务器进行json解码，减少CPU计算
+                SekiroFastJson.FastJson fastJson = SekiroFastJson.quickJsonDecode(sekiroPacket.getData(), invokeRecord.getClientId());
+                String logMessage = "http_invoke_result_" + (fastJson.getStatus() == 0) + " : " + StringUtils.left(fastJson.getFinalJson(), 200);
+                invokeRecord.getLogger().info(logMessage);
+                HttpNettyUtil.writeJsonResponse(channel, fastJson.getFinalJson(), invokeRecord.isKeepAlive());
+                return;
+            }
+
+            String isSegment = sekiroPacket.getHeader(Constants.PAYLOAD_CONTENT_TYPE.SEGMENT_STREAM_FLAG);
+            boolean onceCall = !"true".equalsIgnoreCase(isSegment);
+            if (!onceCall) {
+                invokeRecord.isSegmentResponse = true;
+            }
+
+            if (onceCall && !invokeRecord.isSegmentResponse) {
+                byte[] data = sekiroPacket.getData();
+                ContentType from = ContentType.from(contentType);
+                assert from != null;
+                if (from.getMainType().equals("application") && from.getSubType().equals("json")) {
+                    Charset charset = StandardCharsets.UTF_8;
+                    if (StringUtils.isNotBlank(from.getCharset())) {
+                        try {
+                            charset = Charset.forName(from.getCharset());
+                        } catch (Exception e) {
+                            invokeRecord.getLogger().error("no charset: " + from.getCharset());
+                        }
+                    }
+                    JSONObject jsonObject = JSONObject.parseObject(new String(data, charset));
+                    jsonObject.put("clientId", invokeRecord.getClientId());
+                    data = jsonObject.toJSONString().getBytes(charset);
+                }
+
+                DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
+                        Unpooled.wrappedBuffer(data));
+                httpResponse.headers().set("Content-Type", contentType);
+                httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
+                ChannelFuture channelFuture = channel.writeAndFlush(httpResponse);
+                if (!invokeRecord.isKeepAlive()) {
+                    channelFuture.addListener(ChannelFutureListener.CLOSE);
+                }
+                return;
+            }
+
+            // 分段传输
+            if (!invokeRecord.hasResponseSegmentHttpHeader) {
+                invokeRecord.hasResponseSegmentHttpHeader = true;
+
+                DefaultHttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+                //resp.setChunked(true);
+                resp.headers().set("Content-Type", contentType);
+                resp.headers().set(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
+                channel.write(resp);
+            }
+
+
+            if (onceCall || sekiroPacket.getData().length == 0) {
+                ChannelFuture channelFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                if (!invokeRecord.isKeepAlive()) {
+                    channelFuture.addListener(ChannelFutureListener.CLOSE);
+                }
+                return;
+            }
+            DefaultHttpContent trunkHttpContent = new DefaultHttpContent(Unpooled.wrappedBuffer(sekiroPacket.getData()));
+            channel.writeAndFlush(trunkHttpContent);
+
+            //延长超时时间，这样分段传输的时间可以拉长，避免大报文无法在规定时间内返回完成
+            invokeRecord.mustResponseTimestamp = System.currentTimeMillis() + invokeRecord.timeout;
+        }
+
         @Override
         void writeObjectInternal(Channel channel, Object bean, InvokeRecord invokeRecord) {
-            throw new IllegalStateException("not support for demo version");
+            if (bean instanceof SekiroPacket) {
+                writeSekiroPacket(channel, (SekiroPacket) bean, invokeRecord);
+            } else if (bean instanceof CommonRes) {
+                HttpNettyUtil.writeRes(channel, (CommonRes) bean, invokeRecord.isKeepAlive());
+            } else if (bean instanceof JSONObject) {
+                HttpNettyUtil.writeJsonResponse(channel, ((JSONObject) bean).toJSONString(), invokeRecord.isKeepAlive());
+            } else {
+                invokeRecord.getLogger().error("write unknown message type:" + bean.getClass());
+                channel.close();
+            }
         }
     },
     // websocket调用通道，在需要实时要求场景下，使用websocket接受实时推流，可以实现远程投屏等实时交互功能，这个通道接入难度会大一些，一般要求使用者有二次开发的能力

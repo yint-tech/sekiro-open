@@ -54,4 +54,14 @@ public class HttpNettyUtil {
     }
 
 
+    public static void writeJsonResponse(Channel channel, String jsonObject, boolean keepAlive) {
+        DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
+                Unpooled.wrappedBuffer(jsonObject.getBytes(StandardCharsets.UTF_8)));
+        httpResponse.headers().set("Content-Type", "application/json;charset=utf8;");
+        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
+        ChannelFuture channelFuture = channel.writeAndFlush(httpResponse);
+        if (!keepAlive) {
+            channelFuture.addListener(ChannelFutureListener.CLOSE);
+        }
+    }
 }
