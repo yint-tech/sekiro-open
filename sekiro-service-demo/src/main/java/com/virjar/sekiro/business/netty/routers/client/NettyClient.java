@@ -10,7 +10,6 @@ import com.virjar.sekiro.business.netty.channel.Channel;
 import com.virjar.sekiro.business.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import com.virjar.sekiro.business.netty.util.AttributeKey;
 import com.virjar.sekiro.business.netty.util.ConstantHashUtil;
-
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -147,23 +146,24 @@ public class NettyClient extends Context {
     }
 
     public void forwardInvoke(JSONObject jsonObject, Channel useEndpointChannel, boolean keepAlive) {
-        channel.eventLoop().execute(() -> forwardInvokeInNettyThread(jsonObject, useEndpointChannel, keepAlive));
-    }
-
-    private void forwardInvokeInNettyThread(JSONObject jsonObject, Channel useEndpointChannel, boolean keepAlive) {
-
         // 注意线程切换 forwardInvoke发生在我们定义的事件循环中，是单线程模型，
         // 而netty是线程是线程池，线程要多一些。请求转发存在序列化操作，所以我们切换下线程
-        int seq = sequenceGenerator.getAndIncrement();
+        int seq = sequenceGenerator.incrementAndGet();
         if (seq > Integer.MAX_VALUE * 0.75) {
             // reset seq
             int now = sequenceGenerator.get();
             if (now > Integer.MAX_VALUE * 0.5
                     && sequenceGenerator.compareAndSet(now, 1)
             ) {
-                seq = sequenceGenerator.getAndIncrement();
+                seq = sequenceGenerator.incrementAndGet();
             }
         }
+
+        int finalSeq = seq;
+        channel.eventLoop().execute(() -> forwardInvokeInNettyThread(jsonObject, useEndpointChannel, keepAlive, finalSeq));
+    }
+
+    private void forwardInvokeInNettyThread(JSONObject jsonObject, Channel useEndpointChannel, boolean keepAlive, int seq) {
 
 
         InvokeRecord invokeRecord = new InvokeRecord(this, seq, jsonObject, useEndpointChannel, keepAlive);
