@@ -1,8 +1,4 @@
 include ':sekiro-service-demo'
-include ':sekiro-server',
-        ':sekiro-lib',
-        // 请注意，这是商业版的samples
-        ':samples'
-include ':app-demo',
-        ':xposed-demo'
+include ':samples'
+include ':xposed-demo'
 
