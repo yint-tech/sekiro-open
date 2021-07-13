@@ -3,8 +3,8 @@
 ## 交流群
 加微信：（virjar1）拉入微信交流群
 
-## 商业版文档入口
-[商业版](doc/readme.md)
+## 文档入口
+[唯一官方文档](https://sekiro.virjar.com/sekiro-doc/index.html)
 
 ## 开源版文档入口
 注意，老一代的开源版（2019/10/08 - 2021/04/14）已经推出历史舞台，这是由于他的代码质量是在太差。
@@ -14,7 +14,7 @@
 
 demo版使用和商业版使用一致的客户端API
 
-[开源版本搭建和使用文档直通车](doc/3.demo_server.md)
+[开源版本搭建和使用文档直通车](https://sekiro.virjar.com/sekiro-doc/02_server_deploy/1.DemoServer.html)
 
 
 ## 答问：Sekiro和NanoHttp的区别
