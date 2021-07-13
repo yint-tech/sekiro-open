@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.virjar.sekiro.business</groupId>
             <artifactId>sekiro-netty-codec-http</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>

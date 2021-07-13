@@ -29,7 +29,7 @@ public class XposedMain implements IXposedHookLoadPackage {
                             public void onSekiroRequest(SekiroRequest sekiroRequest, HandlerRegistry handlerRegistry) {
                                 handlerRegistry.registerSekiroHandler(new ClientTimeHandler());
                             }
-                        });
+                        }).start();
             }
         }
     }

@@ -26,6 +26,6 @@ public class MainActivity extends Activity {
                     public void onSekiroRequest(SekiroRequest sekiroRequest, HandlerRegistry handlerRegistry) {
                         handlerRegistry.registerSekiroHandler(new ClientTimeHandler());
                     }
-                });
+                }).start();
     }
 }
