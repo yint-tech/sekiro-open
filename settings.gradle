@@ -3,10 +3,6 @@ include ':sekiro-server',
         ':sekiro-lib',
         // 请注意，这是商业版的samples
         ':samples'
-
-if (new File('.idea').exists()) {
-    // 只有存在AndroidStudio的时候，才编译下面两个module。避免服务器依赖Android
-    include ':app-demo'
-    //include ':sekiro-c'
-}
+include ':app-demo',
+        ':xposed-demo'
 
