@@ -64,13 +64,16 @@ public class RouterHttp extends ChannelInboundHandlerAdapter {
     }
 
     private void handleWebsocketInit() {
-        if (urlPath.equals("/register")) {
+        if (urlPath.equals("/register") ||
+                // #23 在demo版本中增加前缀：/business-demo/
+                urlPath.equals("/business-demo/register")
+        ) {
             ctx.pipeline().remove(this);
             ChannelType.CLIENT_WS.setup(ctx.channel());
             new ChannelTypeClientWebSocket(urlPath, req, ctx);
             return;
         }
-        if (urlPath.equals("/business/invoke")) {
+        if (urlPath.equals("/business-demo/invoke")) {
             ctx.pipeline().remove(this);
             ChannelType.INVOKER_WS.setup(ctx.channel());
             new ChannelTypeInvokerWebsocket(urlPath, req, ctx);

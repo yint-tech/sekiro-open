@@ -44,7 +44,7 @@ public class ChannelTypeClientWebSocket extends RouterHttpWebSocketBase {
         clientId = HttpNettyUtil.getParam(parameters, "clientId");
         if (StringUtils.isBlank(group)
                 || StringUtils.isBlank(clientId)) {
-            String errorMessage = "{group} or {clientId} can not be empty!! demo url: ws://sekiro.virjar.com:5612/websocket?group=ws-group&clientId=testClient";
+            String errorMessage = "{group} or {clientId} can not be empty!! demo url: ws://sekiro.virjar.com/business-demo/register?group=ws-group&clientId=testClient";
             ByteBuf byteBuf = Unpooled.wrappedBuffer(errorMessage.getBytes());
             DefaultFullHttpResponse defaultFullHttpResponse = new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, byteBuf);
