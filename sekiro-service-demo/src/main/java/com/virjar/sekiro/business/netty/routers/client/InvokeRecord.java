@@ -95,8 +95,9 @@ public class InvokeRecord extends Context {
         String invokeTimeoutString = request.getString(Constants.REVERSED_WORDS.INVOKE_TIME_OUT);
         timeout = NumberUtils.toInt(invokeTimeoutString);
         if (timeout < 500) {
-            //默认5s的超时时间
-            timeout = Constants.DEFAULT_INVOKE_TIMEOUT;
+            //默认15s的超时时间
+            // timeout = Constants.DEFAULT_INVOKE_TIMEOUT;
+            timeout = 15000;
         }
         mustResponseTimestamp = System.currentTimeMillis() + timeout;
 
