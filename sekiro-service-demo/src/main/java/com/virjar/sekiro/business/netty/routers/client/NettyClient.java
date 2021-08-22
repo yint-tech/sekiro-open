@@ -95,17 +95,6 @@ public class NettyClient extends Context {
     }
 
 
-    void overwrite(NettyClient newClient) {
-        Channel historyChannel = this.channel;
-        this.channel = newClient.channel;
-        if (historyChannel.isActive()) {
-            getLogger().error("duplicate client register old:" + historyChannel
-                    + " new:" + channel);
-            historyChannel.eventLoop().schedule((Runnable) historyChannel::close, 30, TimeUnit.SECONDS);
-        }
-        this.natClientType = newClient.natClientType;
-    }
-
     public void onClientDisconnected() {
         NettySekiroGroup.createOrGet(getSekiroGroup())
                 .safeDo(this::onClientDisconnected0);
