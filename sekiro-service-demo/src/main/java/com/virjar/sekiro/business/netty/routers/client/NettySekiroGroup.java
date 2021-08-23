@@ -5,12 +5,13 @@ import com.google.common.collect.Maps;
 import com.virjar.sekiro.business.api.core.Context;
 import com.virjar.sekiro.business.api.core.safethread.Looper;
 import com.virjar.sekiro.business.api.core.safethread.ValueCallback;
+import com.virjar.sekiro.business.netty.channel.Channel;
 import com.virjar.sekiro.business.netty.util.ConstantHashUtil;
-
 import lombok.Getter;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 public class NettySekiroGroup extends Context {
 
@@ -150,7 +151,7 @@ public class NettySekiroGroup extends Context {
             Channel historyChannel = old.getChannel();
             if (historyChannel.isActive()) {
                 getLogger().error("duplicate client register old:" + historyChannel
-                        + " new:" + channel);
+                        + " new:" + nettyClient.getChannel());
                 historyChannel.eventLoop().schedule((Runnable) historyChannel::close, 30, TimeUnit.SECONDS);
             }
             constantTreeMap.remove(old.getConstantKey());
