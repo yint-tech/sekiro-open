@@ -143,12 +143,25 @@ public class NettySekiroGroup extends Context {
     private void registerNettyClient0(NettyClient nettyClient) {
         looper.checkLooper();
         NettyClient old = constantTreeMap.get(nettyClient.getConstantKey());
-        if (old == null) {
+        // BugFix. 对于已注册的手机，执行overwrite之后，
+        // nettyClient.doRegister方法未返回old nettyClient，却使用new nettyClient，导致invoke调用时nettyClient对象不一致，触发异常
+        // 解决方案: 删除old nettyClient,添加new nettyClient.
+        if (null != old) {
+            Channel historyChannel = old.getChannel();
+            if (historyChannel.isActive()) {
+                getLogger().error("duplicate client register old:" + historyChannel
+                        + " new:" + channel);
+                historyChannel.eventLoop().schedule((Runnable) historyChannel::close, 30, TimeUnit.SECONDS);
+            }
+            constantTreeMap.remove(old.getConstantKey());
+            clientList.remove(old);
+
             constantTreeMap.put(nettyClient.getConstantKey(), nettyClient);
             clientList.addFirst(nettyClient);
-            return;
+        } else {
+            constantTreeMap.put(nettyClient.getConstantKey(), nettyClient);
+            clientList.addFirst(nettyClient);
         }
-        old.overwrite(nettyClient);
     }
 
     public void unregisterNettyClient(NettyClient nettyClient) {
