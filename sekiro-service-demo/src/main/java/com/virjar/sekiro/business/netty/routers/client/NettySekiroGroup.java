@@ -180,9 +180,15 @@ public class NettySekiroGroup extends Context {
             getLogger().warn("unregister none exist NettyClient:" + nettyClient.getClientId());
             return;
         }
-        constantTreeMap.remove(nettyClient.getConstantKey());
-        //clientList.remove(old);
-        offlineClients.remove(nettyClient.getClientId());
+        // BugFix. 主要出现在网络状况不好时的重复注册场景。
+        // 重复注册时，由于启动30s后close channel的任务，使得即使新的nettyClient注册到constantTreeMap,
+        // 30后在constantTreeMap里新的nettyClient也会被删除。使得出现假死状态。即手机在线也无法执行任务操作。
+        // 解决方案: 只有channel一致时才从constantTreeMap里删除nettyClient对象.
+        if (old.getChannel() == nettyClient.getChannel()) {
+            constantTreeMap.remove(nettyClient.getConstantKey());
+            //clientList.remove(old);
+            offlineClients.remove(nettyClient.getClientId());
+        }
     }
 
     public static NettySekiroGroup createOrGet(String sekiroGroup) {
