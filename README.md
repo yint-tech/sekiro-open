@@ -1,129 +1,34 @@
-# sekiro
+# Sekiro
+SEKIRO是一个多语言的、分布式、网络拓扑无关的服务发布平台，通过书写各自语言的handler将功能发布到中心API市场，业务系统通过RPC的方式使用远端节点的能力。
 
-SEKIRO 是一个android下的API服务暴露框架，可以用在app逆向、app数据抓取、android群控等场景。
+更多介绍，请参考详细文档： [http://sekiro.iinti.cn/sekiro-doc/](http://sekiro.iinti.cn/sekiro-doc/)
 
-Sekiro是我之前设计的群控系统 [Hermes](https://gitee.com/virjar/hermesagent) 的升级版，和其他群控框架相比的特点如下：
+## Sekiro是一个RPC框架
+sekiro主要支持多节点的程序调用，所以他归属于RPC（Remote protocol call）框架：API管理、鉴权、分布式、负载均衡、跨语言
 
-1. 对网络环境要求低，sekiro使用长链接管理服务，使得Android手机可以分布于全国各地，甚至全球各地。手机掺合在普通用户群体，方便实现反抓突破，更加适合获取下沉数据。
-2. 不依赖hook框架，就曾经的Hermes系统来说，和xposed框架深度集成，在当今hook框架遍地开花的环境下，框架无法方便迁移。所以在Sekiro的设计中，只提供了RPC功能了。
-3. 纯异步调用，在Hermes和其他曾经出现过的框架中，基本都是同步调用。虽然说签名计算可以达到上百QPS，但是如果用来做业务方法调用的话，由于调用过程穿透到目标app的服务器，会有大量请求占用线程。系统吞吐存在上线(hermes系统达到2000QPS的时候，基本无法横行扩容和性能优化了)。但是Sekiro全程使用NIO，理论上其吞吐可以把资源占满。
-4. 等等
+## Sekiro不是常规意义的RPC框架
+通常情况下，在后端微服务下RPC框架主要用于拆分复杂业务模块，以及多节点集群提升单机性能瓶颈的能力。他们一般是单个机房下业务机器组，调用其他业务机器组。
+Dubbo、springCloud、grpc便是目前市面上具有代表性的RPC解决方案，并且他们都是世界顶级的项目。然而Sekiro并不是解决这种常规RPC能力场景的方案。
 
+Sekiro主要提供的功能是： 受限上下文环境下的功能外放，服务提供者（provider）运行在一个受限环境中，导致这个服务不能作为一个普通的算法方便的转移到内部服务，而此时我们的业务又希望可以使用这种受限环境下的功能。
 
-# 部署流程
+* 一个加密算法，运行在客户端程序中，服务需要使用它但是没有完成这个算法的破译，可以通过sekiro注入代码到这个客户端，然后发布算法的API
+* 一份数据，由于权限限制，仅允许在机构内网使用（机构来源ip检查），但是我们希望在外部服务调用。可以在机构内网书写sekiro客户端，实现API发布
+* app（或者终端）程序，存在给C端客人使用的能力，但是我们希望在B端业务能够使用这个能力，那么通过Sekiro连接他，B端参数转发到app中，使用app代理调用能力：（这就是爬虫行业所谓的RPC爬虫）
+* 服务提供者有一个能力需要给其他人使用，但是不希望交付代码，以及不希望泄漏这个服务对应的机器（IP地址等），那么可以通过sekiro发布服务。其他人只能通过sekiro使用能力，而无法了解这个能力的任何细节。
+* 一个算法，需要复杂的计算环境，无法在外部服务轻松部署，那么可以使用Sekiro，将API寄身在可用环境上，然后export到外部
 
-部署区分服务器端部署和客户端部署，服务器使用SpringBoot实现，占三个端口(``server.port: http管理端，同步http``| ``natServerPort:手机nat穿透端，和手机长链接``| ``natHttpServerPort:NIO的http服务端，只提供RPC调用入口``)
-手机端一般附加在apk代码逻辑中。
-
-## 服务端部署
-
-两种方式，基于源码部署和jar包运行
-
-### 源码部署服务器
-执行脚本 ``./runProd.sh``即可，不过在服务器，由于gradle项目存在Android端，所以需要配置Androidsdk环境
-
-
-```
-#安装sdkman
-curl -s "https://get.sdkman.io" | bash
-source "$HOME/.sdkman/bin/sdkman-init.sh"
-#安装gradle
-sdk install gradle 4.4
-
-#下载并解压android sdk
-wget http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
-tar -zvxf android-sdk_r24.4.1-linux.tgz
-#设置环境变量
-
-echo "export ANDROID_HOME=path/to/android-sdk-linux" >> /etc/profile
-echo "export PATH=$ANDROID_HOME/tools:$PATH"
-source /etc/profile
-
-#安装sdk
-android list sdk --all
-android update sdk -u --all --filter 7  #选择对应sdk的编号，我这边装的27.0.3 对应编号7
-
-# 如果出现
-# Failed to install the following Android SDK packages as some licences have not been accepted.
-#      build-tools;28.0.3 Android SDK Build-Tools 28.0.3
-#   To build this project, accept the SDK license agreements and install the missing components using the Android Studio SDK Manager.
-#   Alternatively, to transfer the license agreements from one workstation to another, see http://d.android.com/r/studio-ui/export-licenses.html
-# 那么执行
-android update sdk -u --all --filter itemId(在--all里面，缺少那个选择那个)
-```
-
-之后再次执行脚本  ``./runProd.sh``即可
-
-### jar包部署
-
-1. 当前目录执行代码: ``./gradlew sekiro-server:bootJar``  即可在 `` sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar``找到all-in-one的jar包
-2. 通过命令 ``nohup java -jar sekiro-server/build/libs/sekiro-server-0.0.1-SNAPSHOT.jar >/dev/null 2>&1  &`` 即可启动服务器
-
-### 端口配置
-
-在``sekiro-server/src/main/resources/appliation.properties``中可以配置三个服务端端口
+## 核心流程
+1. 存在一个中心服务器：sekiro中心服务，他需要服务器端，可以被consumer和provider连接
+2. 存在多种语言的客户端，java、js、python等，并且使用这些语言实现了和sekiro中心服务器的通信和API包装
+3. 用户在各自语言中，使用sekiro客户端API编写handler，用于接受参数并且完成到真实能力的转发调用，连接sekiro服务和本地环境服务
+4. 外部用户调用sekiro中心服务API，被sekiro服务转发到对应的客户端handler，获得调用结果后，原链路返回给用户
 
 
-## client使用
+## 构建教程
 
-目前API发布在maven快照仓库，通过如下方式添加依赖:
-```
-repositories {
-    maven {
-        name "aliyunmaven"
-        url "https://maven.aliyun.com/repository/public"
-    }
-    maven {
-        name "aliyunGoogle"
-        url "https://maven.aliyun.com/repository/google"
-    }
-    maven {
-        name "contralSnapshot"
-        url "https://oss.sonatype.org/content/repositories/snapshots/"
-    }
-}
-
-dependencies {
-    implementation 'com.virjar:sekiro-api:1.1.0-SNAPSHOT'
-}
-```
-
-然后即可在apk代码中书写调用服务逻辑:
-```
-SekiroClient.start("sekiro.virjar.com",clientId,"sekiro-demo")
-        .registerHandler("clientTime",new SekiroRequestHandler(){
-            @Override
-            public void handleRequest(SekiroRequest sekiroRequest,SekiroResponse sekiroResponse){
-                    sekiroResponse.success(" now:"+System.currentTimeMillis()+ " your param1:" + sekiroRequest.getString("param1"));
-            }
-        });
-
-```
-安装apk到手机，并打开，然后可以通过服务器访问这个接口
-
-```
-http://sekiro.virjar.com/channelList
-
-{"status":0,"message":null,"data":["sekiro-demo"],"clientId":null,"ok":true}
-
-
-http://sekiro.virjar.com/natChannelStatus?group=sekiro-demo
-{"status":0,"message":null,"data":["2e77bbfa_869941041217576"],"clientId":null,"ok":true}
-
-
-http://sekiro.virjar.com/invoke?group=sekiro-demo&action=clientTime&param1=%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0
-
-{"clientId":"2e77bbfa_869941041217576","data":"process: com.virjar.sekiro.demoapp : now:1570546873170 your param1:自定义参数","ok":true,"status":0}
-```
-client demo在``app-demo``子工程可以看到，直接运行app-demo，即可在 sekiro.virjar.com看到你的设备列表
-
-# 在类似xposed的代码注入框架中使用Sekiro
-
-Sekiro本身不提供代码注入功能，不过Sekiro一般需要和代码注入框架配合产生作用，如和Xposed配合，可以方便调用app内部私有API，一般情况下，在Xposed入口启动Sekiro，然后接受服务器指令,并将参数转发到app内部。
-
-Sekiro调用真实apk的例子稍后提供
-
-
-# 服务器异步http 暂未实现
-
-
+- 安装Java
+- 安装maven
+- Linux/mac下，执行脚本：``build_demo_server.sh``，得到文件``target/sekiro-open-demo.zip``极为产出文件
+- 运行脚本：``bin/sekiro.sh`` 或 ``bin/sekiro.bat``
+- 文档： [http://127.0.0.1:5612/sekiro-doc](http://127.0.0.1:5612/sekiro-doc) 假设你的服务部署在本机：``127.0.0.1`` 

@@ -1,8 +1,6 @@
 *.iml
 .gradle
 /local.properties
-/.idea/workspace.xml
-/.idea/libraries
 .DS_Store
 /build
 /captures
@@ -22,7 +20,6 @@ target/
 # idea ignore
 .idea/
 *.ipr
-*.iml
 *.iws
 
 # temp ignore
@@ -33,18 +30,9 @@ target/
 *.tmp
 
 # system ignore
-.DS_Store
 Thumbs.db
 
 
 *.apk
 build/
-apps/
-ratelConfig.properties
-
-script/dist
-script/dist.zip
-
-container-builder-repkg/src/main/resources/ratel_engine.properties
-
-container-builder-repkg/src/main/resources/dex_maker_opt.zip
+logs/
