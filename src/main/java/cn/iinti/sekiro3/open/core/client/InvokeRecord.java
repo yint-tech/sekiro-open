@@ -2,6 +2,7 @@ package cn.iinti.sekiro3.open.core.client;
 
 import cn.iinti.sekiro3.business.api.fastjson.JSONObject;
 import cn.iinti.sekiro3.business.api.protocol.SekiroPacket;
+import cn.iinti.sekiro3.business.api.protocol.SekiroPacketType;
 import cn.iinti.sekiro3.business.api.util.Constants;
 import cn.iinti.sekiro3.business.netty.channel.Channel;
 import cn.iinti.sekiro3.business.netty.channel.ChannelFutureListener;
@@ -84,7 +85,10 @@ public class InvokeRecord {
         if (originalSeq != null) {
             sekiroPacket.setSerialNumber(originalSeq);
         }
-
+        if (sekiroPacket.getType() == SekiroPacketType.C_TYPE_INVOKE_RESPONSE.getCode()) {
+            // the sekiro v2 protocol,need compat with low level apis
+            sekiroPacket.setType(SekiroPacketType.S_TYPE_INVOKE_RESPONSE.getCode());
+        }
         boolean isHttpRequest = requestChannel.pipeline().get(SekiroMsgEncoders.CommonRes2HttpEncoder.class) != null;
         doResponse(isHttpRequest ? NettyUtils.buildHttpResponse(sekiroPacket, this) : sekiroPacket);
 
