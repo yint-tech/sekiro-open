@@ -20,6 +20,8 @@ public class SekiroMsgEncoders {
             packet.setSerialNumber(commonRes.getSeq());
             packet.setData(JSONObject.toJSONString(commonRes).getBytes(StandardCharsets.UTF_8));
             packet.addHeader(Constants.COMMON_HEADERS.HTTP_CONTENT_TYPE, Constants.COMMON_HEADERS.HTTP_CONTENT_TYPE_JSON);
+            packet.addHeader(Constants.COMMON_HEADERS.HEADER_CLIENT_ID, commonRes.getClientId());
+            packet.addHeader(Constants.REVERSED_WORDS.RESPONSE_STATUS, String.valueOf(commonRes.getStatus()));
             out.add(packet);
         }
     }
