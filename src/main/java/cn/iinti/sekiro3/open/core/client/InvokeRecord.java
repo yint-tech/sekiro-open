@@ -89,6 +89,8 @@ public class InvokeRecord {
             // the sekiro v2 protocol,need compat with low level apis
             sekiroPacket.setType(SekiroPacketType.S_TYPE_INVOKE_RESPONSE.getCode());
         }
+        sekiroPacket.addHeader(Constants.COMMON_HEADERS.HEADER_CLIENT_ID, nettyClient.getClientId());
+
         boolean isHttpRequest = requestChannel.pipeline().get(SekiroMsgEncoders.CommonRes2HttpEncoder.class) != null;
         doResponse(isHttpRequest ? NettyUtils.buildHttpResponse(sekiroPacket, this) : sekiroPacket);
 
