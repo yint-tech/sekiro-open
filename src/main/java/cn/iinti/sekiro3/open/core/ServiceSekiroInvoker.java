@@ -51,9 +51,9 @@ public class ServiceSekiroInvoker extends SimpleChannelInboundHandler<SekiroPack
             return;
         }
 
-        requestJson.put(Constants.REVERSED_WORDS.WEB_SOCKET_SEQ_NUMBER, seq);
         requestJson.put(Constants.REVERSED_WORDS.DO_NOT_COMPRESS_FOR_SEKIRO_SEKIRO, "true");
         InvokeRecord invokeRecord = new InvokeRecord(requestJson, ctx.channel(), true);
+        invokeRecord.invokerSeq = seq;
 
         NettySekiroGroup.accessAndAllocate(requestJson, value -> {
             if (!value.isSuccess()) {

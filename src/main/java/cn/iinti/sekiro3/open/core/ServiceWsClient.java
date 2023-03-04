@@ -69,6 +69,8 @@ public class ServiceWsClient extends SimpleChannelInboundHandler<WebSocketFrame>
             error("serial number not set for client!!");
             return;
         }
+        jsonObject.remove(Constants.REVERSED_WORDS.WEB_SOCKET_SEQ_NUMBER);
+
         SekiroPacket packet = SekiroPacketType.S_TYPE_INVOKE_RESPONSE.createPacket();
         packet.setSerialNumber(serialNumber);
         packet.addHeader(Constants.PAYLOAD_CONTENT_TYPE.PAYLOAD_CONTENT_TYPE, "application/json;charset=utf8");

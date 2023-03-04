@@ -35,6 +35,7 @@ public class InvokeRecord {
     public boolean isSegmentResponse = false;
     public boolean hasResponseSegmentHttpHeader = false;
 
+    public Integer invokerSeq = null;
 
     public InvokeRecord(JSONObject request, Channel requestChannel, boolean keepAlive) {
         this.request = request;
@@ -81,9 +82,8 @@ public class InvokeRecord {
 
     public void response(SekiroPacket sekiroPacket) {
         // if this request from invoker, we need sync invoker seq as response
-        Integer originalSeq = request.getInteger(Constants.REVERSED_WORDS.WEB_SOCKET_SEQ_NUMBER);
-        if (originalSeq != null) {
-            sekiroPacket.setSerialNumber(originalSeq);
+        if (invokerSeq != null) {
+            sekiroPacket.setSerialNumber(invokerSeq);
         }
         if (sekiroPacket.getType() == SekiroPacketType.C_TYPE_INVOKE_RESPONSE.getCode()) {
             // the sekiro v2 protocol,need compat with low level apis
