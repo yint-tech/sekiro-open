@@ -114,7 +114,11 @@ public class NettySekiroGroup {
     public void fetchByClientId(String clientId, ValueCallback<NettyClient> valueCallback) {
         safeDo(() -> {
             NettyClient nettyClient = consistentTreeMap.get(ConsistentHashUtil.murHash(clientId));
-            if (nettyClient != null && !nettyClient.getClientId().equals(clientId)) {
+            if (nettyClient == null) {
+                String msg = "no device found for clientId:" + clientId;
+                recorder.recordEvent(msg);
+                ValueCallback.failed(valueCallback, msg);
+            } else if (!nettyClient.getClientId().equals(clientId)) {
                 String msg = "hash conflict!! ？？ clientId1："
                         + clientId + " clientId2:" + nettyClient.getClientId()
                         + " murHash:" + ConsistentHashUtil.murHash(clientId);
