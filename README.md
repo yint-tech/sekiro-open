@@ -1,7 +1,9 @@
 # Sekiro [For English](./README-EN.md)
 SEKIRO是一个多语言的、分布式、网络拓扑无关的服务发布平台，通过书写各自语言的handler将功能发布到中心API市场，业务系统通过RPC的方式使用远端节点的能力。
 
-更多介绍，请参考详细文档： [https://iinti.cn/sekiro/](https://iinti.cn/sekiro/)
+更多介绍，请参考详细文档： [http://sekiro.iinti.cn/sekiro-doc/](http://sekiro.iinti.cn/sekiro-doc/)
+
+各语言样例代码： [https://github.com/yint-tech/sekiro-samples](https://github.com/yint-tech/sekiro-samples)
 
 ## Sekiro是一个RPC框架
 sekiro主要支持多节点的程序调用，所以他归属于RPC（Remote Procedure Call）框架：API管理、鉴权、分布式、负载均衡、跨语言
