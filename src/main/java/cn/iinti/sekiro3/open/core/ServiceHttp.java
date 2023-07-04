@@ -25,40 +25,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ServiceHttp extends ChannelInboundHandlerAdapter {
+public class ServiceHttp extends SimpleChannelInboundHandler<FullHttpRequest> {
     private String urlPath;
     private ChannelHandlerContext ctx;
-    private FullHttpRequest req;
     private QueryStringDecoder queryStringDecoder;
     private Recorder recorder;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (!(msg instanceof FullHttpRequest)) {
-            ctx.close();
-            return;
-        }
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
         this.recorder = Session.get(ctx.channel()).getRecorder();
         this.ctx = ctx;
-        this.req = (FullHttpRequest) msg;
-        if (!req.getDecoderResult().isSuccess()) {
+        if (!fullHttpRequest.getDecoderResult().isSuccess()) {
             DefaultFullHttpResponse defaultFullHttpResponse = new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-            NettyUtils.sendHttpResponse(ctx, req, defaultFullHttpResponse);
+            NettyUtils.sendHttpResponse(ctx, fullHttpRequest, defaultFullHttpResponse);
             return;
         }
-        queryStringDecoder = new QueryStringDecoder(req.getUri());
-        urlPath = queryStringDecoder.path();
 
-        if ("websocket".equalsIgnoreCase(req.headers().get("Upgrade"))) {
+        queryStringDecoder = new QueryStringDecoder(fullHttpRequest.getUri());
+        urlPath = queryStringDecoder.path();
+        recorder.recordEvent("access uri: " + urlPath);
+        String host = fullHttpRequest.headers().get(HttpHeaders.Names.HOST);
+        if ("websocket".equalsIgnoreCase(fullHttpRequest.headers().get("Upgrade"))) {
             recorder.recordEvent(() -> "this is websocket request");
-            handleWebsocketInit();
+            handleWebsocketInit(fullHttpRequest);
         } else {
-            handleHttpRequest();
+            handleHttpRequest(fullHttpRequest);
         }
     }
 
-    private void handleWebsocketInit() {
+    private void handleWebsocketInit(FullHttpRequest req) {
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
                 "ws://" + req.headers().get(HttpHeaders.Names.HOST) + urlPath, null, false, 1 << 25);
         WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
@@ -77,7 +73,7 @@ public class ServiceHttp extends ChannelInboundHandlerAdapter {
                     || urlPath.equals("/register")
                     || urlPath.equals("/business-demo/register")
             ) {
-                doWsClientRegister(handshaker);
+                doWsClientRegister(req, handshaker);
                 return;
             }
 
@@ -91,7 +87,7 @@ public class ServiceHttp extends ChannelInboundHandlerAdapter {
 
     }
 
-    private void doWsClientRegister(WebSocketServerHandshaker handshaker) {
+    private void doWsClientRegister(FullHttpRequest req, WebSocketServerHandshaker handshaker) {
         Map<String, List<String>> parameters = queryStringDecoder.parameters();
         String group = NettyUtils.getParam(parameters, "group");
         String clientId = NettyUtils.getParam(parameters, "clientId");
@@ -109,7 +105,7 @@ public class ServiceHttp extends ChannelInboundHandlerAdapter {
         pipeline.remove(this);
     }
 
-    private void handleHttpRequest() {
+    private void handleHttpRequest(FullHttpRequest req) {
         ChannelPipeline pipeline = ctx.pipeline();
 
         SekiroMsgEncoders.CommonRes2HttpEncoder commonRes2HttpEncoder = pipeline.get(SekiroMsgEncoders.CommonRes2HttpEncoder.class);
@@ -137,7 +133,7 @@ public class ServiceHttp extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        JSONObject requestJson = buildRequestJson(method, contentType);
+        JSONObject requestJson = buildRequestJson(req, method, contentType);
         recorder.recordEvent(() -> "the sekiro invoke request: " + requestJson);
         if (StringUtils.equalsAnyIgnoreCase(urlPath, "/business/invoke", "/business-demo/invoke")) {
             InvokeRecord invokeRecord = new InvokeRecord(requestJson, ctx.channel(), HttpHeaders.isKeepAlive(req));
@@ -176,7 +172,7 @@ public class ServiceHttp extends ChannelInboundHandlerAdapter {
 
     }
 
-    private JSONObject buildRequestJson(HttpMethod method, ContentType contentType) {
+    private JSONObject buildRequestJson(FullHttpRequest req, HttpMethod method, ContentType contentType) {
         //now build request
         JSONObject requestJson = new JSONObject();
         for (Map.Entry<String, List<String>> entry : queryStringDecoder.parameters().entrySet()) {
