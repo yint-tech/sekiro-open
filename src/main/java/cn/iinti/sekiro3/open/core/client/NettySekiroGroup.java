@@ -43,7 +43,8 @@ public class NettySekiroGroup {
     public NettySekiroGroup(String sekiroGroup) {
         this.sekiroGroup = sekiroGroup;
         this.recorder = EventRecordManager.acquireRecorder(sekiroGroup, EventScene.SEKIRO_GROUP);
-        looper = new Looper("group-thread-" + sekiroGroup).startLoop();
+        this.looper = new Looper("group-thread-" + sekiroGroup).startLoop();
+        looper.scheduleWithRate(() -> clientList.removeIf(NettyClient::isDown), 60 * 60 * 1000);
     }
 
     public static List<String> groupList() {
