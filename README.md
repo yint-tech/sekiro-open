@@ -5,7 +5,7 @@ SEKIRO是一个多语言的、分布式、网络拓扑无关的服务发布平�
 
 各语言样例代码： [https://github.com/yint-tech/sekiro-samples](https://github.com/yint-tech/sekiro-samples)
 
-安装包下载：[iinti sekiro-demo download](https://oss.iinti.cn/sekiro/sekiro-demo)
+安装包下载：[iinti sekiro-demo https://oss.iinti.cn/sekiro/sekiro-demo](https://oss.iinti.cn/sekiro/sekiro-demo)
 
 ## Sekiro是一个RPC框架
 sekiro主要支持多节点的程序调用，所以他归属于RPC（Remote Procedure Call）框架：API管理、鉴权、分布式、负载均衡、跨语言
