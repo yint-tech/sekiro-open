@@ -5,6 +5,8 @@ SEKIRO是一个多语言的、分布式、网络拓扑无关的服务发布平�
 
 各语言样例代码： [https://github.com/yint-tech/sekiro-samples](https://github.com/yint-tech/sekiro-samples)
 
+安装包下载：[iinti sekiro-demo download](https://oss.iinti.cn/sekiro/sekiro-demo)
+
 ## Sekiro是一个RPC框架
 sekiro主要支持多节点的程序调用，所以他归属于RPC（Remote Procedure Call）框架：API管理、鉴权、分布式、负载均衡、跨语言
 
@@ -33,4 +35,11 @@ Sekiro主要提供的功能是： 受限上下文环境下的功能外放，服�
 - 安装maven
 - Linux/mac下，执行脚本：``build_demo_server.sh``，得到文件``target/sekiro-open-demo.zip``极为产出文件
 - 运行脚本：``bin/sekiro.sh`` 或 ``bin/sekiro.bat``
-- 文档： [http://127.0.0.1:5612/sekiro-doc](http://127.0.0.1:5612/sekiro-doc) 假设你的服务部署在本机：``127.0.0.1`` 
+- 文档： [http://127.0.0.1:5612/sekiro-doc](http://127.0.0.1:5612/sekiro-doc) 假设你的服务部署在本机：``127.0.0.1``
+
+## 安装包
+
+- [iinti sekiro-demo download]([sekiro-demo](https://oss.iinti.cn/sekiro/sekiro-demo)https://oss.iinti.cn/sekiro/sekiro-demo)
+
+
+
