@@ -39,7 +39,7 @@ Sekiro主要提供的功能是： 受限上下文环境下的功能外放，服�
 
 ## 安装包
 
-- [iinti sekiro-demo download]([sekiro-demo](https://oss.iinti.cn/sekiro/sekiro-demo)https://oss.iinti.cn/sekiro/sekiro-demo)
+- [iinti sekiro-demo download](https://oss.iinti.cn/sekiro/sekiro-demo)
 
 
 
