@@ -9,11 +9,12 @@ import cn.iinti.sekiro3.business.netty.channel.*;
 import cn.iinti.sekiro3.business.netty.handler.codec.http.*;
 import cn.iinti.sekiro3.business.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import cn.iinti.sekiro3.business.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
-import cn.iinti.sekiro3.open.framework.trace.Recorder;
-import cn.iinti.sekiro3.open.handlers.SekiroMsgEncoders;
 import cn.iinti.sekiro3.open.core.client.InvokeRecord;
 import cn.iinti.sekiro3.open.core.client.NettyClient;
 import cn.iinti.sekiro3.open.core.client.NettySekiroGroup;
+import cn.iinti.sekiro3.open.framework.trace.Recorder;
+import cn.iinti.sekiro3.open.handlers.SekiroMsgEncoders;
+import cn.iinti.sekiro3.open.handlers.WsHeartbeatHandler;
 import cn.iinti.sekiro3.open.utils.ContentType;
 import cn.iinti.sekiro3.open.utils.DefaultHtmlHttpResponse;
 import cn.iinti.sekiro3.open.utils.NettyUtils;
@@ -101,7 +102,10 @@ public class ServiceHttp extends SimpleChannelInboundHandler<FullHttpRequest> {
         }
         ChannelPipeline pipeline = ctx.pipeline();
         NettyClient nettyClient = NettyClient.newWsNettyClient(ctx.channel(), group, clientId);
-        pipeline.addLast(new ServiceWsClient(nettyClient, handshaker));
+        pipeline.addLast(
+                new WsHeartbeatHandler(recorder),
+                new ServiceWsClient(nettyClient, handshaker)
+        );
         pipeline.remove(this);
     }
 
