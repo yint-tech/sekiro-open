@@ -53,7 +53,11 @@ public class ServiceWsClient extends SimpleChannelInboundHandler<WebSocketFrame>
             } else {
                 recorder.recordEvent("Continuation frame received without initial frame.");
             }
-        } else {
+        } else if (frame instanceof PongWebSocketFrame) {
+            recorder.recordEvent("Pong frame received");
+            return;
+        }
+        else {
             error("error ws request: " + frame.getClass());
             return;
         }
