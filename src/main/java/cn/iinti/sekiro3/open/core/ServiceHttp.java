@@ -2,6 +2,7 @@ package cn.iinti.sekiro3.open.core;
 
 import cn.iinti.sekiro3.business.api.fastjson.JSONException;
 import cn.iinti.sekiro3.business.api.fastjson.JSONObject;
+import cn.iinti.sekiro3.business.api.fastjson.parser.Feature;
 import cn.iinti.sekiro3.business.api.util.Constants;
 import cn.iinti.sekiro3.business.netty.buffer.ByteBuf;
 import cn.iinti.sekiro3.business.netty.buffer.Unpooled;
@@ -22,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -178,9 +181,9 @@ public class ServiceHttp extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private JSONObject buildRequestJson(FullHttpRequest req, HttpMethod method, ContentType contentType) {
         //now build request
-        JSONObject requestJson = new JSONObject();
+        JSONObject requestJson = new JSONObject(Collections.synchronizedMap(new LinkedHashMap<>()));
         for (Map.Entry<String, List<String>> entry : queryStringDecoder.parameters().entrySet()) {
-            if (entry.getValue() == null || entry.getValue().size() == 0) {
+            if (entry.getValue() == null || entry.getValue().isEmpty()) {
                 continue;
             }
             requestJson.put(entry.getKey(), entry.getValue().get(0));
@@ -193,10 +196,10 @@ public class ServiceHttp extends SimpleChannelInboundHandler<FullHttpRequest> {
             }
             String postBody = req.content().toString(Charset.forName(charset));
             try {
-                requestJson.putAll(JSONObject.parseObject(postBody));
+                requestJson.putAll(JSONObject.parseObject(postBody, Feature.OrderedField));
             } catch (JSONException e) {
                 for (Map.Entry<String, List<String>> entry : new QueryStringDecoder(postBody, false).parameters().entrySet()) {
-                    if (entry.getValue() == null || entry.getValue().size() == 0) {
+                    if (entry.getValue() == null || entry.getValue().isEmpty()) {
                         continue;
                     }
                     requestJson.put(entry.getKey(), entry.getValue().get(0));

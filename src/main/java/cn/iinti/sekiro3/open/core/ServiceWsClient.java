@@ -1,6 +1,7 @@
 package cn.iinti.sekiro3.open.core;
 
 import cn.iinti.sekiro3.business.api.fastjson.JSONObject;
+import cn.iinti.sekiro3.business.api.fastjson.parser.Feature;
 import cn.iinti.sekiro3.business.api.protocol.SekiroPacket;
 import cn.iinti.sekiro3.business.api.protocol.SekiroPacketType;
 import cn.iinti.sekiro3.business.api.util.Constants;
@@ -66,7 +67,7 @@ public class ServiceWsClient extends SimpleChannelInboundHandler<WebSocketFrame>
             return;
         }
         String response = frameBuffer.toString();
-        JSONObject jsonObject = JSONObject.parseObject(response);
+        JSONObject jsonObject = JSONObject.parseObject(response, Feature.OrderedField);
 
         int serialNumber = jsonObject.getIntValue(Constants.REVERSED_WORDS.WEB_SOCKET_SEQ_NUMBER);
         if (serialNumber <= 0) {
