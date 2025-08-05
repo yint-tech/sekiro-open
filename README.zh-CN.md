@@ -1,4 +1,10 @@
-# Sekiro [English](./README.md)
+# Sekiro
+
+<div align="center">
+
+[English](./README.md) | [中文](./README.zh-CN.md)
+
+</div>
 
 SEKIRO是一个多语言的、分布式、网络拓扑无关的服务发布平台，
 
@@ -10,7 +16,7 @@ SEKIRO是一个多语言的、分布式、网络拓扑无关的服务发布平�
 
 各语言样例代码： [https://github.com/yint-tech/sekiro-samples](https://github.com/yint-tech/sekiro-samples)
 
-安装包下载：[iinti sekiro-demo https://oss.iinti.cn/sekiro/sekiro-demo](https://oss.iinti.cn/sekiro/sekiro-demo)
+安装包下载：[iinti sekiro-open download](https://oss.iinti.cn/sekiro/sekiro-open)
 
 ## Sekiro是一个RPC框架
 
@@ -44,9 +50,15 @@ Sekiro主要提供的功能是： 受限上下文环境下的功能外放，服�
 * 运行脚本：``bin/sekiro.sh`` 或 ``bin/sekiro.bat``
 * 文档： [http://127.0.0.1:5612/sekiro-doc](http://127.0.0.1:5612/sekiro-doc) 假设你的服务部署在本机：``127.0.0.1``
 
+
 ## 安装包
 
 * [iinti sekiro-demo download](https://oss.iinti.cn/sekiro/sekiro-demo)
+
+## 使用教程
+
+* [iinti sekiro quickstart](https://sekiro.iinti.cn/sekiro-doc/01_manual/1.quickstart.html)
+* 各语言样例代码： [https://github.com/yint-tech/sekiro-samples](https://github.com/yint-tech/sekiro-samples)
 
 ## Star History
 
@@ -54,6 +66,6 @@ Sekiro主要提供的功能是： 受限上下文环境下的功能外放，服�
 
 ## 商业版服务
 
-- [http://sekiro.iinti.cn/sekiro-doc/](http://sekiro.iinti.cn/sekiro-doc/)
+* [http://sekiro.iinti.cn/sekiro-doc/](http://sekiro.iinti.cn/sekiro-doc/)
 
 支持鉴权、API管理、分布式集群、负载均衡、跨语言等功能，欢迎试用咨询~
