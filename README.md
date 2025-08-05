@@ -1,45 +1,48 @@
-# Sekiro [English](./README.EN.md)
-SEKIRO是一个多语言的、分布式、网络拓扑无关的服务发布平台，通过书写各自语言的handler将功能发布到中心API市场，业务系统通过RPC的方式使用远端节点的能力。
+# Sekiro [中文](./README.zh-CN.md)
 
-更多介绍，请参考详细文档： [http://sekiro.iinti.cn/sekiro-doc/](http://sekiro.iinti.cn/sekiro-doc/)
+SEKIRO is a multi-language, distributed, network topology-independent service publishing platform. By writing handlers in various programming languages, functionalities can be published to a central API marketplace, and business systems can utilize the capabilities of remote nodes through RPC (Remote Procedure Call).
 
-各语言样例代码： [https://github.com/yint-tech/sekiro-samples](https://github.com/yint-tech/sekiro-samples)
+For more detailed information, please refer to the documentation: [http://sekiro.iinti.cn/sekiro-doc/](http://sekiro.iinti.cn/sekiro-doc/)
 
-安装包下载：[iinti sekiro-demo https://oss.iinti.cn/sekiro/sekiro-demo](https://oss.iinti.cn/sekiro/sekiro-demo)
+Sample code for various languages: [https://github.com/yint-tech/sekiro-samples](https://github.com/yint-tech/sekiro-samples)
 
-## Sekiro是一个RPC框架
-sekiro主要支持多节点的程序调用，所以他归属于RPC（Remote Procedure Call）框架：API管理、鉴权、分布式、负载均衡、跨语言
+Installation package download: [iinti sekiro-demo https://oss.iinti.cn/sekiro/sekiro-demo](https://oss.iinti.cn/sekiro/sekiro-demo)
 
-## Sekiro不是常规意义的RPC框架
-通常情况下，在后端微服务下RPC框架主要用于拆分复杂业务模块，以及多节点集群提升单机性能瓶颈的能力。他们一般是单个机房下业务机器组，调用其他业务机器组。
-Dubbo、springCloud、grpc便是目前市面上具有代表性的RPC解决方案，并且他们都是世界顶级的项目。然而Sekiro并不是解决这种常规RPC能力场景的方案。
+## Sekiro is an RPC Framework
 
-Sekiro主要提供的功能是： 受限上下文环境下的功能外放，服务提供者（provider）运行在一个受限环境中，导致这个服务不能作为一个普通的算法方便的转移到内部服务，而此时我们的业务又希望可以使用这种受限环境下的功能。
+Sekiro primarily supports multi-node program invocation, so it belongs to the RPC (Remote Procedure Call) framework category, offering: API management, authentication, distribution, load balancing, and cross-language support.
 
-* 一个加密算法，运行在客户端程序中，服务需要使用它但是没有完成这个算法的破译，可以通过sekiro注入代码到这个客户端，然后发布算法的API
-* 一份数据，由于权限限制，仅允许在机构内网使用（机构来源ip检查），但是我们希望在外部服务调用。可以在机构内网书写sekiro客户端，实现API发布
-* app（或者终端）程序，存在给C端客人使用的能力，但是我们希望在B端业务能够使用这个能力，那么通过Sekiro连接他，B端参数转发到app中，使用app代理调用能力：（这就是爬虫行业所谓的RPC爬虫）
-* 服务提供者有一个能力需要给其他人使用，但是不希望交付代码，以及不希望泄漏这个服务对应的机器（IP地址等），那么可以通过sekiro发布服务。其他人只能通过sekiro使用能力，而无法了解这个能力的任何细节。
-* 一个算法，需要复杂的计算环境，无法在外部服务轻松部署，那么可以使用Sekiro，将API寄身在可用环境上，然后export到外部
+## Sekiro is Not a Conventional RPC Framework
 
-## 核心流程
-1. 存在一个中心服务器：sekiro中心服务，他需要服务器端，可以被consumer和provider连接
-2. 存在多种语言的客户端，java、js、python等，并且使用这些语言实现了和sekiro中心服务器的通信和API包装
-3. 用户在各自语言中，使用sekiro客户端API编写handler，用于接受参数并且完成到真实能力的转发调用，连接sekiro服务和本地环境服务
-4. 外部用户调用sekiro中心服务API，被sekiro服务转发到对应的客户端handler，获得调用结果后，原链路返回给用户
+Typically, in backend microservices, RPC frameworks are mainly used to decompose complex business modules and enhance single-machine performance bottlenecks through multi-node clusters. They are generally business machine groups within a single data center calling other business machine groups. Dubbo, Spring Cloud, and gRPC are representative RPC solutions currently available in the market, and they are all world-class projects. However, Sekiro is not a solution designed for such conventional RPC capability scenarios.
 
+Sekiro's main functionality is: **exposing capabilities from restricted context environments**. Service providers run in a restricted environment, making it inconvenient to transfer these services as regular algorithms to internal services, while our business needs to utilize these capabilities from restricted environments.
 
-## 构建教程
+* **Encryption algorithm**: Running in a client program, the service needs to use it but hasn't completed the algorithm's reverse engineering. You can inject code into this client through Sekiro and then publish the algorithm's API.
+* **Restricted data**: Due to permission restrictions, data is only allowed to be used within an organization's intranet (checked by organization source IP), but we want to call it from external services. You can write a Sekiro client within the organization's intranet to implement API publishing.
+* **App/Terminal programs**: Have capabilities for C-end customers, but we want B-end business to use these capabilities. Connect through Sekiro, forward B-end parameters to the app, and use the app to proxy call capabilities (this is what the crawler industry calls RPC crawling).
+* **Service capability protection**: A service provider has a capability that needs to be used by others but doesn't want to deliver the code or leak the service's corresponding machine information (IP address, etc.). They can publish the service through Sekiro. Others can only use the capability through Sekiro without understanding any details of this capability.
+* **Complex computing environments**: An algorithm requires a complex computing environment and cannot be easily deployed in external services. You can use Sekiro to host the API in an available environment and then export it externally.
 
-- 安装Java
-- 安装maven
-- Linux/mac下，执行脚本：``build_demo_server.sh``，得到文件``target/sekiro-open-demo.zip``极为产出文件
-- 运行脚本：``bin/sekiro.sh`` 或 ``bin/sekiro.bat``
-- 文档： [http://127.0.0.1:5612/sekiro-doc](http://127.0.0.1:5612/sekiro-doc) 假设你的服务部署在本机：``127.0.0.1``
+## Core Workflow
 
-## 安装包
+1. There exists a central server: the Sekiro central service, which requires a server-side component that can be connected by both consumers and providers.
+2. There are clients in multiple languages (Java, JavaScript, Python, etc.), and these languages have implemented communication with the Sekiro central server and API wrapping.
+3. Users write handlers in their respective languages using the Sekiro client API to accept parameters and complete forwarding calls to real capabilities, connecting the Sekiro service with local environment services.
+4. External users call the Sekiro central service API, which is forwarded by the Sekiro service to the corresponding client handler. After obtaining the call result, it returns to the user through the original link.
 
-- [iinti sekiro-demo download](https://oss.iinti.cn/sekiro/sekiro-demo)
+## Build Tutorial
 
+* Install Java
+* Install Maven
+* On Linux/Mac, execute the script: `build_demo_server.sh` to get the output file `target/sekiro-open-demo.zip`
+* Run the script: `bin/sekiro.sh` or `bin/sekiro.bat`
+* Documentation: [http://127.0.0.1:5612/sekiro-doc](http://127.0.0.1:5612/sekiro-doc) (assuming your service is deployed on localhost: `127.0.0.1`)
 
+## Installation Package
 
+* [iinti sekiro-demo download](https://oss.iinti.cn/sekiro/sekiro-demo)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yint-tech/sekiro-open&type=Date)](https://www.star-history.com/#yint-tech/sekiro-open&Date)
